@@ -1,0 +1,6 @@
+ebin/*.beam
+.eunit
+c_src/*.o
+c_src/re2/obj
+priv
+support/rebar
