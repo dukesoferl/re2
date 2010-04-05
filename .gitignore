@@ -1,6 +1,6 @@
 ebin/*.beam
 .eunit
 c_src/*.o
-c_src/re2/obj
+c_src/re2
 priv
 support/rebar
