@@ -8,8 +8,6 @@ extern "C" {
 
 #include <re2/re2.h>
 #include <map>
-#include <vector>
-#include <iostream>
 
 static ErlNifResourceType* re2_RESOURCE;
 
@@ -70,60 +68,49 @@ ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     re2::StringPiece group[n];
 
     if (re.Match(s,0,RE2::UNANCHORED,group,n)) {
+      std::map<int,std::string> rnmap;
+      std::string named[n];
       const std::map<std::string, int>& nmap = re.NamedCapturingGroups();
-      if (nmap.size() > 0) {
-        std::map<const std::string,const re2::StringPiece> matches;
-        for (std::map<std::string, int>::const_iterator it = nmap.begin();
-            it != nmap.end(); ++it)
-        {
-          int index = (it->second);
-          const std::string name = it->first;
-          const re2::StringPiece match = group[index];
-          matches.insert(std::pair<const std::string,const re2::StringPiece>(
-                name,match));
-        }
-        int arrsz = matches.size();
-        ERL_NIF_TERM arr[arrsz];
-        int i = 0;
-        for (std::map<const std::string,const re2::StringPiece>::const_iterator
-                it = matches.begin(); it != matches.end(); ++it)
-        {
-          const std::string name = it->first;
-          const re2::StringPiece match = it->second;
+      for (std::map<std::string, int>::const_iterator it = nmap.begin();
+          it != nmap.end(); ++it)
+      {
+        int index = it->second;
+        named[index] = it->first;
+      }
+      ERL_NIF_TERM arr[n];
+      for(int i=0; i < n; i++) {
+        const re2::StringPiece match = group[i];
 
+        if (!named[i].empty()) {
+          const std::string & name = named[i];
           ErlNifBinary bname;
           if(!enif_alloc_binary(env, name.size(), &bname))
             return error(env, RE2_ERR_ALLOCBIN);
           memcpy(bname.data, name.data(), name.size());
 
           ErlNifBinary bmatch;
-          if(!enif_alloc_binary(env, match.size(), &bmatch))
+          if(!enif_alloc_binary(env, match.size(), &bmatch)) {
+            enif_release_binary(env, &bname);
             return error(env, RE2_ERR_ALLOCBIN);
+          }
           memcpy(bmatch.data, match.data(), match.size());
 
           arr[i] = enif_make_tuple2(env,
               enif_make_binary(env, &bname), enif_make_binary(env, &bmatch));
-          i++;
-        }
-        return enif_make_tuple2(env,
-            enif_make_atom(env,"match"),
-            enif_make_list_from_array(env,arr,arrsz));
-      } else {
-        std::vector<ERL_NIF_TERM> matches;
-        for(int i=0; i<n; i++) {
-          const re2::StringPiece match = group[i];
 
+        } else {
           ErlNifBinary bmatch;
           if(!enif_alloc_binary(env, match.size(), &bmatch))
             return error(env, RE2_ERR_ALLOCBIN);
           memcpy(bmatch.data, match.data(), match.size());
 
-          matches.push_back(enif_make_binary(env, &bmatch));
+          arr[i] = enif_make_binary(env, &bmatch);
         }
-        return enif_make_tuple2(env,
-            enif_make_atom(env,"match"),
-            enif_make_list_from_array(env,&matches[0],matches.size()));
       }
+
+      return enif_make_tuple2(env,
+          enif_make_atom(env,"match"),
+          enif_make_list_from_array(env,arr,n));
     } else {
       return enif_make_atom(env,"nomatch");
     }
