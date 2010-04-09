@@ -3,16 +3,20 @@
 %% license that can be found in the LICENSE file.
 
 -module(re2).
--author('tuncerayaz@gmail.com').
+-author(tuncerayaz).
 
 -export([new/0,
-    match/3]).
+    match/3,
+    match/4
+  ]).
 
 -on_load(init/0).
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
 -endif.
+
+-define(NIF_NOT_LOADED, "NIF library not loaded").
 
 init() ->
   case code:priv_dir(re2) of
@@ -24,34 +28,76 @@ init() ->
   erlang:load_nif(SoName, 0).
 
 new() ->
-  "NIF library not loaded".
-
+  ?NIF_NOT_LOADED.
 match(_,_,_) ->
-  "NIF library not loaded".
+  ?NIF_NOT_LOADED.
+match(_,_,_,_) ->
+  ?NIF_NOT_LOADED.
 
 %% ===================================================================
 %% EUnit tests
 %% ===================================================================
 -ifdef(TEST).
 
-basic_test() ->
+match_test() ->
   {ok, Ref} = new(),
-  {match,M0a} = match(Ref,<<"hello">>,<<"(?P<A>h)(?P<B>.*)o">>),
-  io:format(user,"M0a ~p~n", [M0a]),
-  {match,M0b} = match(Ref,<<"ello">>,<<"(?P<A>h?)(?P<B>.*)o">>),
-  io:format(user,"M0b ~p~n", [M0b]),
-  {match,M1a} = match(Ref,<<"hello">>,<<"(h)(.*)o">>),
-  io:format(user,"M1a ~p~n", [M1a]),
-  {match,M1b} = match(Ref,<<"ello">>,<<"(h?)(.*)o">>),
-  io:format(user,"M1b ~p~n", [M1b]),
-  {match,M2a} = match(Ref,<<"hello">>,<<"h.*o">>),
-  io:format(user,"M2a ~p~n", [M2a]),
-  {match,M2b} = match(Ref,[$h,"e",<<"llo">>],[<<"h.*">>,$o]),
-  io:format(user,"M2b ~p~n", [M2b]),
+
+  {match,[<<>>,<<>>,<<>>]} = match(Ref,
+    <<"hello">>,
+    <<"h.*o">>,
+    [{capture,['A',2,"B"],binary}]),
+
+  {match,[{-1,0},{-1,0},{-1,0}]} = match(Ref,
+    <<"hello">>,
+    <<"h.*o">>,
+    [{capture,['A',2,"B"],index}]),
+
+  {match,[<<"ell">>,<<"o">>,<<"h">>]} = match(Ref,
+    <<"hello">>,
+    <<"(?P<B>h)(?P<A>.*)(o)">>,
+    [{capture,['A',3,"B"],binary}]),
+
+  {match,[{0,5}]} = match(Ref,
+    <<"hello">>,
+    <<"(?P<A>h)(?P<B>.*)o">>,
+    [{capture,first,index}]),
+
+  {match,[<<"hello">>,<<"h">>,<<"ell">>]} = match(Ref,
+    <<"hello">>,
+    <<"(?P<A>h)(?P<B>.*)o">>),
+
+  {match,[<<"ello">>,<<>>,<<"ell">>]} = match(Ref,
+    <<"1234ello">>,
+    <<"(?P<A>h?)(?P<B>.*)o">>,
+    [{offset,4}]),
+
+  {match,[<<>>,<<"ell">>]} = match(Ref,
+    <<"1234ello">>,
+    <<"(?P<A>h?)(?P<B>.*)o">>,
+    [{offset,4},{capture,all_but_first}]),
+
+  {match,[<<"h">>,<<"ell">>]} = match(Ref,
+    <<"hello">>,
+    <<"(h)(.*)o">>,
+    [{capture,all_but_first,binary}]),
+
+  {match,[{0,4}]} = match(Ref,
+    <<"ello">>,
+    <<"(h?)(.*)o">>,
+    [{capture,first,index}]),
+
+  {match,[<<"hello">>]} = match(Ref,
+    [$h,"e",<<"llo">>],
+    [<<"h.*">>,$o]),
+
   nomatch = match(Ref,<<"olleh">>,<<"h.*o">>),
-  {match,M3a} = match(Ref,"abc","abc|(def)"),
-  io:format(user,"M3a ~p~n", [M3a]),
-  {match,M3b} = match(Ref,"def","abc|(def)"),
-  io:format(user,"M3b ~p~n", [M3b]).
+
+  {match,[<<"abc">>,<<>>]} = match(Ref,
+    "abc",
+    "abc|(def)"),
+
+  {match,[<<"def">>,<<"def">>]} = match(Ref,
+    "def",
+    "abc|(def)").
 
 -endif.

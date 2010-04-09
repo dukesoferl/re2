@@ -1,6 +1,4 @@
 Implement:
- * match ranges
  * replace
  * compile pattern
- * options to control what's returned
- * re2 options
+ * more match options?
