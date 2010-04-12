@@ -58,21 +58,35 @@ static ERL_NIF_TERM a_err_re2_obj_not_ok;
 static ERL_NIF_TERM error(ErlNifEnv* env, ERL_NIF_TERM err);
 static void init_atoms(ErlNifEnv* env);
 
-struct matchoptions {
-  enum valuespec { VS_ALL,VS_ALL_BUT_FIRST,VS_FIRST,VS_NONE,VS_VLIST };
-  enum capture_type { CT_INDEX,CT_LIST,CT_BINARY };
+namespace {
+  struct matchoptions {
+    enum valuespec { VS_ALL,VS_ALL_BUT_FIRST,VS_FIRST,VS_NONE,VS_VLIST };
+    enum capture_type { CT_INDEX,CT_LIST,CT_BINARY };
 
-  int offset;
-  enum valuespec vs;
-  enum capture_type ct;
-  ERL_NIF_TERM vlist;
-  matchoptions():offset(0), vs(VS_ALL), ct(CT_BINARY) {};
-  void info() const {
-    printf("matchoptions offset:%d vs:%d ct:%d",
-           offset,vs,ct);
-    printf("\n");
-  }
-};
+    int offset;
+    enum valuespec vs;
+    enum capture_type ct;
+    ERL_NIF_TERM vlist;
+
+    matchoptions():offset(0), vs(VS_ALL), ct(CT_BINARY) {};
+    void info() const {
+      printf("matchoptions offset:%d vs:%d ct:%d",
+             offset,vs,ct);
+      printf("\n");
+    }
+  };
+
+  template <typename T>
+  class autohandle {
+  private: bool keep_;  T* re_;
+  public:
+    autohandle():keep_(false),re_(NULL){}
+    autohandle(T* re,bool keep=false):keep_(keep),re_(re){}
+    void set(T* re,bool keep=false) { re_=re; keep_=keep; }
+    ~autohandle() { if (!keep_) { delete re_; re_=NULL; } }
+    T* operator->() { return re_; }
+  };
+}
 
 static bool parse_matchoptions(ErlNifEnv* env, const ERL_NIF_TERM list,
                                matchoptions& opts, ERL_NIF_TERM *err);
@@ -138,17 +152,6 @@ static int on_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
 
   return 0;
 }
-
-template <typename T>
-class autohandle {
-private: bool keep_;  T* re_;
-public:
-  autohandle():keep_(false),re_(NULL){}
-  autohandle(T* re,bool keep=false):keep_(keep),re_(re){}
-  void set(T* re,bool keep=false) { re_ = re; keep_=keep; }
-  ~autohandle() { if (!keep_) { delete re_; re_=NULL; } }
-  T* operator->() { return re_; }
-};
 
 ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
