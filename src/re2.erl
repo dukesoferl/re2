@@ -5,10 +5,12 @@
 -module(re2).
 -author(tuncerayaz).
 
--export([new/0,
-    match/3,
-    match/4
-  ]).
+-export([
+         new/0,
+         new/2,
+         match/3,
+         match/4
+        ]).
 
 -on_load(init/0).
 
@@ -29,6 +31,8 @@ init() ->
 
 new() ->
   ?NIF_NOT_LOADED.
+new(_,_) ->
+  ?NIF_NOT_LOADED.
 match(_,_,_) ->
   ?NIF_NOT_LOADED.
 match(_,_,_,_) ->
@@ -40,6 +44,12 @@ match(_,_,_,_) ->
 -ifdef(TEST).
 
 match_test() ->
+  {ok, RefA} = new(<<"h.*o">>, []),
+  {match,[<<>>,<<>>,<<>>]} = match(RefA,
+    <<"hello">>,
+    <<"h.*o">>,
+    [{capture,['A',2,"B"],binary}]),
+
   {ok, Ref} = new(),
 
   {match,[<<>>,<<>>,<<>>]} = match(Ref,
@@ -92,11 +102,12 @@ match_test() ->
 
   nomatch = match(Ref,<<"olleh">>,<<"h.*o">>),
 
-  {match,[<<"abc">>,<<>>]} = match(Ref,
+  {ok,RefB} = new("abc|(def)",[]),
+  {match,[<<"abc">>,<<>>]} = match(RefB,
     "abc",
     "abc|(def)"),
 
-  {match,[<<"def">>,<<"def">>]} = match(Ref,
+  {match,[<<"def">>,<<"def">>]} = match(RefB,
     "def",
     "abc|(def)").
 
