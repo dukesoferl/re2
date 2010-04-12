@@ -59,22 +59,14 @@ static ERL_NIF_TERM error(ErlNifEnv* env, ERL_NIF_TERM err);
 static void init_atoms(ErlNifEnv* env);
 
 struct matchoptions {
-  enum valuespec {
-    vs_all,vs_all_but_first,vs_first,vs_none,vs_vlist
-  };
-  enum capture_type {
-    ct_index,ct_list,ct_binary
-  };
+  enum valuespec { VS_ALL,VS_ALL_BUT_FIRST,VS_FIRST,VS_NONE,VS_VLIST };
+  enum capture_type { CT_INDEX,CT_LIST,CT_BINARY };
 
   int offset;
   enum valuespec vs;
   enum capture_type ct;
   ERL_NIF_TERM vlist;
-  matchoptions():
-    offset(0),
-    vs(vs_all),
-    ct(ct_binary)
-  {};
+  matchoptions():offset(0), vs(VS_ALL), ct(CT_BINARY) {};
   void info() const {
     printf("matchoptions offset:%d vs:%d ct:%d",
            offset,vs,ct);
@@ -200,23 +192,23 @@ ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
       int start = 0;
       int arrsz = n;
 
-      if (opts.vs == matchoptions::vs_none) {
+      if (opts.vs == matchoptions::VS_NONE) {
         // return match atom only
         return a_match;
 
-      } else if (opts.vs == matchoptions::vs_first) {
+      } else if (opts.vs == matchoptions::VS_FIRST) {
         // return first match only
         ERL_NIF_TERM first = mres(env, s, group[0], opts.ct);
         return enif_make_tuple2(env, a_match,
             enif_make_list1(env, first));
 
-      } else if (opts.vs == matchoptions::vs_all_but_first) {
+      } else if (opts.vs == matchoptions::VS_ALL_BUT_FIRST) {
         // skip first match
         start = 1;
         arrsz--;
       }
 
-      if (opts.vs == matchoptions::vs_vlist) {
+      if (opts.vs == matchoptions::VS_VLIST) {
         // return subpatterns as specified in ValueList
 
         std::vector<ERL_NIF_TERM> vec;
@@ -398,13 +390,13 @@ static bool parse_matchoptions(ErlNifEnv* env, const ERL_NIF_TERM list,
 
             if(enif_is_atom(env, tuple[1]) > 0) {
               if (enif_is_identical(env, tuple[1], a_all))
-                opts.vs = matchoptions::vs_all;
+                opts.vs = matchoptions::VS_ALL;
               else if (enif_is_identical(env, tuple[1], a_all_but_first))
-                opts.vs = matchoptions::vs_all_but_first;
+                opts.vs = matchoptions::VS_ALL_BUT_FIRST;
               else if (enif_is_identical(env, tuple[1], a_first))
-                opts.vs = matchoptions::vs_first;
+                opts.vs = matchoptions::VS_FIRST;
               else if (enif_is_identical(env, tuple[1], a_none))
-                opts.vs = matchoptions::vs_none;
+                opts.vs = matchoptions::VS_NONE;
 
               vs_set = true;
             }
@@ -417,16 +409,16 @@ static bool parse_matchoptions(ErlNifEnv* env, const ERL_NIF_TERM list,
 
             opts.vlist = tuple[1];
             vs_set = true;
-            opts.vs = matchoptions::vs_vlist;
+            opts.vs = matchoptions::VS_VLIST;
           }
 
           // Type = index | binary
 
           if (tuplearity == 3 && vs_set) {
             if (enif_is_identical(env, tuple[2], a_index))
-              opts.ct = matchoptions::ct_index;
+              opts.ct = matchoptions::CT_INDEX;
             else if (enif_is_identical(env, tuple[2], a_binary))
-              opts.ct = matchoptions::ct_binary;
+              opts.ct = matchoptions::CT_BINARY;
           }
         }
       }
@@ -443,7 +435,7 @@ static ERL_NIF_TERM mres(ErlNifEnv* env,
 {
   switch (ct) {
     default:
-    case matchoptions::ct_index:
+    case matchoptions::CT_INDEX:
       int l, r;
       if (match.empty()) {
         l = -1;
@@ -456,7 +448,7 @@ static ERL_NIF_TERM mres(ErlNifEnv* env,
                               enif_make_int(env, l),
                               enif_make_int(env, r));
       break;
-    case matchoptions::ct_binary:
+    case matchoptions::CT_BINARY:
       ErlNifBinary bmatch;
       if(!enif_alloc_binary(env, match.size(), &bmatch))
         return error(env, a_err_alloc_binary);
