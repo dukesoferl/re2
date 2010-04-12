@@ -12,7 +12,7 @@ case "$1" in
     ;;
 
   *)
-    ( hg clone https://re2.googlecode.com/hg/ re2 && \
-      cd re2 && make -j2)
+    (test ! -d re2 && hg clone https://re2.googlecode.com/hg/ re2)
+    (cd re2 && make -j2)
     ;;
 esac
