@@ -6,6 +6,7 @@ extern "C" {
 #include "erl_nif.h"
 }
 
+#include <stdio.h>
 #include <re2/re2.h>
 #include <map>
 #include <vector>
