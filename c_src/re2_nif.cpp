@@ -78,13 +78,13 @@ namespace {
 
   template <typename T>
   class autohandle {
-  private: bool keep_;  T* re_;
+  private: bool keep_;  T* ptr_;
   public:
-    autohandle():keep_(false),re_(NULL){}
-    autohandle(T* re,bool keep=false):keep_(keep),re_(re){}
-    void set(T* re,bool keep=false) { re_=re; keep_=keep; }
-    ~autohandle() { if (!keep_) { delete re_; re_=NULL; } }
-    T* operator->() { return re_; }
+    autohandle():keep_(false),ptr_(NULL){}
+    autohandle(T* ptr,bool keep=false):keep_(keep),ptr_(ptr_){}
+    void set(T* ptr,bool keep=false) { ptr_=ptr; keep_=keep; }
+    ~autohandle() { if (!keep_) { delete ptr_; ptr_=NULL; } }
+    T* operator->() { return ptr_; }
   };
 }
 
