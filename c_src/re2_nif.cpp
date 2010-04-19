@@ -167,6 +167,10 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
       const re2::StringPiece p((const char*)pdata.data, pdata.size);
       re.set(new RE2(p));
     }
+    else
+    {
+      return enif_make_badarg(env);
+    }
 
     if (!re->ok())
       return error(env, a_err_re2_obj_not_ok);
