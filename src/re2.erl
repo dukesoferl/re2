@@ -6,10 +6,9 @@
 -author(tuncerayaz).
 
 -export([
-         new/0,
-         new/2,
-         match/3,
-         match/4
+         compile/1,
+         match/2,
+         match/3
         ]).
 
 -on_load(init/0).
@@ -29,13 +28,11 @@ init() ->
   end,
   erlang:load_nif(SoName, 0).
 
-new() ->
+compile(_) ->
   ?NIF_NOT_LOADED.
-new(_,_) ->
+match(_,_) ->
   ?NIF_NOT_LOADED.
 match(_,_,_) ->
-  ?NIF_NOT_LOADED.
-match(_,_,_,_) ->
   ?NIF_NOT_LOADED.
 
 %% ===================================================================
@@ -44,71 +41,69 @@ match(_,_,_,_) ->
 -ifdef(TEST).
 
 match_test() ->
-  {ok, RefA} = new(<<"h.*o">>, []),
-  {match,[<<>>,<<>>,<<>>]} = match(RefA,
+  {ok, RegExA} = compile(<<"h.*o">>),
+  {match,[<<>>,<<>>,<<>>]} = match(
     <<"hello">>,
-    <<"h.*o">>,
+    RegExA,
     [{capture,['A',2,"B"],binary}]),
 
-  {ok, Ref} = new(),
-
-  {match,[<<>>,<<>>,<<>>]} = match(Ref,
+  {match,[<<>>,<<>>,<<>>]} = match(
     <<"hello">>,
-    <<"h.*o">>,
+    RegExA,
     [{capture,['A',2,"B"],binary}]),
 
-  {match,[{-1,0},{-1,0},{-1,0}]} = match(Ref,
+  {match,[{-1,0},{-1,0},{-1,0}]} = match(
     <<"hello">>,
     <<"h.*o">>,
     [{capture,['A',2,"B"],index}]),
 
-  {match,[<<"ell">>,<<"o">>,<<"h">>]} = match(Ref,
+  {match,[<<"ell">>,<<"o">>,<<"h">>]} = match(
     <<"hello">>,
     <<"(?P<B>h)(?P<A>.*)(o)">>,
     [{capture,['A',3,"B"],binary}]),
 
-  {match,[{0,5}]} = match(Ref,
+  {match,[{0,5}]} = match(
     <<"hello">>,
     <<"(?P<A>h)(?P<B>.*)o">>,
     [{capture,first,index}]),
 
-  {match,[<<"hello">>,<<"h">>,<<"ell">>]} = match(Ref,
+  {match,[<<"hello">>,<<"h">>,<<"ell">>]} = match(
     <<"hello">>,
     <<"(?P<A>h)(?P<B>.*)o">>),
 
-  {match,[<<"ello">>,<<>>,<<"ell">>]} = match(Ref,
+  {match,[<<"ello">>,<<>>,<<"ell">>]} = match(
     <<"1234ello">>,
     <<"(?P<A>h?)(?P<B>.*)o">>,
     [{offset,4}]),
 
-  {match,[<<>>,<<"ell">>]} = match(Ref,
+  {match,[<<>>,<<"ell">>]} = match(
     <<"1234ello">>,
     <<"(?P<A>h?)(?P<B>.*)o">>,
     [{offset,4},{capture,all_but_first}]),
 
-  {match,[<<"h">>,<<"ell">>]} = match(Ref,
+  {match,[<<"h">>,<<"ell">>]} = match(
     <<"hello">>,
     <<"(h)(.*)o">>,
     [{capture,all_but_first,binary}]),
 
-  {match,[{0,4}]} = match(Ref,
+  {match,[{0,4}]} = match(
     <<"ello">>,
     <<"(h?)(.*)o">>,
     [{capture,first,index}]),
 
-  {match,[<<"hello">>]} = match(Ref,
+  {match,[<<"hello">>]} = match(
     [$h,"e",<<"llo">>],
     [<<"h.*">>,$o]),
 
-  nomatch = match(Ref,<<"olleh">>,<<"h.*o">>),
+  nomatch = match(<<"olleh">>,<<"h.*o">>),
 
-  {ok,RefB} = new("abc|(def)",[]),
-  {match,[<<"abc">>,<<>>]} = match(RefB,
+  {ok,RegExB} = compile("abc|(def)"),
+  {match,[<<"abc">>,<<>>]} = match(
     "abc",
-    "abc|(def)"),
+    RegExB),
 
-  {match,[<<"def">>,<<"def">>]} = match(RefB,
+  {match,[<<"def">>,<<"def">>]} = match(
     "def",
-    "abc|(def)").
+    RegExB).
 
 -endif.

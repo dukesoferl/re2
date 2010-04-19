@@ -18,15 +18,16 @@ typedef struct
 
 extern "C" {
   // Prototypes
-  ERL_NIF_TERM re2_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
-  ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[]);
+  static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
+                                  const ERL_NIF_TERM argv[]);
+  static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
+                                const ERL_NIF_TERM argv[]);
 
   static ErlNifFunc nif_funcs[] =
     {
-      {"new", 0, re2_new},
-      {"new", 2, re2_new},
+      {"compile", 1, re2_compile},
+      {"match", 2, re2_match},
       {"match", 3, re2_match},
-      {"match", 4, re2_match},
     };
 
   static void re2_resource_cleanup(ErlNifEnv* env, void* arg);
@@ -99,22 +100,14 @@ static ERL_NIF_TERM mres(ErlNifEnv* env,
 
 
 
-ERL_NIF_TERM re2_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
+                                const ERL_NIF_TERM argv[])
 {
-  ErlNifBinary rdata;
+  ErlNifBinary pdata;
 
-  if (argc == 0)
+  if (enif_inspect_iolist_as_binary(env, argv[0], &pdata))
   {
-    re2_handle* handle = (re2_handle*)enif_alloc_resource(
-        env, re2_resource, sizeof(re2_handle));
-    handle->re = NULL;
-    ERL_NIF_TERM result = enif_make_resource(env, handle);
-    enif_release_resource(env, handle);
-    return enif_make_tuple2(env, a_ok, result);
-  }
-  else if (argc == 2 && enif_inspect_iolist_as_binary(env, argv[0], &rdata))
-  {
-    const re2::StringPiece p((const char*)rdata.data, rdata.size);
+    const re2::StringPiece p((const char*)pdata.data, pdata.size);
     re2_handle* handle = (re2_handle*)enif_alloc_resource(
         env, re2_resource, sizeof(re2_handle));
     handle->re = new RE2(p);
@@ -154,24 +147,24 @@ static int on_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
   return 0;
 }
 
-ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
+                              const ERL_NIF_TERM argv[])
 {
   ErlNifBinary sdata;
-  ErlNifBinary rdata;
-  if (enif_inspect_iolist_as_binary(env, argv[1], &sdata) &&
-      enif_inspect_iolist_as_binary(env, argv[2], &rdata))
+  ErlNifBinary pdata;
+  if (enif_inspect_iolist_as_binary(env, argv[0], &sdata))
   {
     const re2::StringPiece s((const char*)sdata.data, sdata.size);
-    const re2::StringPiece p((const char*)rdata.data, rdata.size);
     autohandle<RE2> re;
     re2_handle* handle;
-    if (enif_get_resource(env, argv[0], re2_resource, (void**)&handle)
+    if (enif_get_resource(env, argv[1], re2_resource, (void**)&handle)
         && handle->re != NULL)
     {
       re.set(handle->re,true);
     }
-    else
+    else if (enif_inspect_iolist_as_binary(env, argv[1], &pdata))
     {
+      const re2::StringPiece p((const char*)pdata.data, pdata.size);
       re.set(new RE2(p));
     }
 
@@ -181,16 +174,16 @@ ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     int n = re->NumberOfCapturingGroups()+1;
     re2::StringPiece group[n];
 
-    if (argc < 3 || argc > 4)
+    if (argc < 2 || argc > 3)
       return enif_make_badarg(env);
 
     matchoptions opts;
     ERL_NIF_TERM opterr;
-    if (argc == 4 && !parse_matchoptions(env, argv[3], opts, &opterr))
+    if (argc == 3 && !parse_matchoptions(env, argv[2], opts, &opterr))
       return opterr;
 
     //opts.info();
-    //printf("match '%s' '%s'\n", s.as_string().c_str(), p.as_string().c_str());
+    //printf("match '%s' '%s'\n", s.as_string().c_str(), re->pattern().c_str());
     if (re->Match(s,opts.offset,RE2::UNANCHORED,group,n)) {
 
       int start = 0;
