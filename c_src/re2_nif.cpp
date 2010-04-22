@@ -151,12 +151,14 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
                               const ERL_NIF_TERM argv[])
 {
   ErlNifBinary sdata;
-  ErlNifBinary pdata;
+
   if (enif_inspect_iolist_as_binary(env, argv[0], &sdata))
   {
     const re2::StringPiece s((const char*)sdata.data, sdata.size);
     autohandle<RE2> re;
     re2_handle* handle;
+    ErlNifBinary pdata;
+
     if (enif_get_resource(env, argv[1], re2_resource, (void**)&handle)
         && handle->re != NULL)
     {
