@@ -443,7 +443,7 @@ static ERL_NIF_TERM mres(ErlNifEnv* env,
         r = 0;
       } else {
         l = match.data() - str.data();
-        r = l + match.size();
+        r = match.size();
       }
       return enif_make_tuple2(env,
                               enif_make_int(env, l),
