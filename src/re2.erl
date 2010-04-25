@@ -7,6 +7,7 @@
 
 -export([
          compile/1,
+         compile/2,
          match/2,
          match/3
         ]).
@@ -30,6 +31,8 @@ init() ->
 
 compile(_) ->
   ?NIF_NOT_LOADED.
+compile(_,_) ->
+  ?NIF_NOT_LOADED.
 match(_,_) ->
   ?NIF_NOT_LOADED.
 match(_,_,_) ->
@@ -42,6 +45,7 @@ match(_,_,_) ->
 
 match_test() ->
   {ok, RegExA} = compile(<<"h.*o">>),
+
   {match,[<<>>,<<>>,<<>>]} = match(
     <<"hello">>,
     RegExA,
@@ -104,6 +108,21 @@ match_test() ->
 
   {match,[<<"def">>,<<"def">>]} = match(
     "def",
-    RegExB).
+    RegExB),
+
+  {ok, RegExC} = compile(<<"h.*o">>, [caseless]),
+  {match, [<<"hElLo">>]} = match(
+    "hElLo",
+    RegExC,
+    [{capture,first,binary}]),
+  {match, [<<"Hello">>]} = match(
+    "Hello",
+    RegExC,
+    [{capture,first,binary}]),
+
+  {ok, RegExD} = compile(<<"h.*o">>),
+  nomatch = match(
+    "Hello",
+    RegExD).
 
 -endif.

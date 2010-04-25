@@ -11,8 +11,41 @@ extern "C" {
 #include <map>
 #include <vector>
 
+namespace {
+  struct options {
+    enum valuespec { VS_ALL,VS_ALL_BUT_FIRST,VS_FIRST,VS_NONE,VS_VLIST };
+    enum capture_type { CT_INDEX,CT_LIST,CT_BINARY };
+
+    int offset;
+    enum valuespec vs;
+    enum capture_type ct;
+    ERL_NIF_TERM vlist;
+    RE2::Options re2opts;
+
+    options():offset(0), vs(VS_ALL), ct(CT_BINARY) {};
+    void info() const {
+      printf("options offset:%d vs:%d ct:%d",
+             offset,vs,ct);
+      printf("\n");
+    }
+  };
+
+  template <typename T>
+  class autohandle {
+  private: bool keep_;  T* ptr_;
+  public:
+    autohandle():keep_(false),ptr_(NULL){}
+    autohandle(T* ptr,bool keep=false):keep_(keep),ptr_(ptr_){}
+    void set(T* ptr,bool keep=false) { ptr_=ptr; keep_=keep; }
+    ~autohandle() { if (!keep_) { delete ptr_; ptr_=NULL; } }
+    T* operator->() { return ptr_; }
+    T* operator&() { return ptr_; }
+  };
+}
+
 typedef struct
 {
+  options* opts;
   RE2* re;
 } re2_handle;
 
@@ -26,6 +59,7 @@ extern "C" {
   static ErlNifFunc nif_funcs[] =
     {
       {"compile", 1, re2_compile},
+      {"compile", 2, re2_compile},
       {"match", 2, re2_match},
       {"match", 3, re2_match},
     };
@@ -51,6 +85,7 @@ static ERL_NIF_TERM a_first;
 static ERL_NIF_TERM a_none;
 static ERL_NIF_TERM a_index;
 static ERL_NIF_TERM a_binary;
+static ERL_NIF_TERM a_caseless;
 static ERL_NIF_TERM a_err_alloc_binary;
 static ERL_NIF_TERM a_err_offset_not_int;
 static ERL_NIF_TERM a_err_malloc_a_id;
@@ -60,43 +95,14 @@ static ERL_NIF_TERM a_err_re2_obj_not_ok;
 static ERL_NIF_TERM error(ErlNifEnv* env, ERL_NIF_TERM err);
 static void init_atoms(ErlNifEnv* env);
 
-namespace {
-  struct matchoptions {
-    enum valuespec { VS_ALL,VS_ALL_BUT_FIRST,VS_FIRST,VS_NONE,VS_VLIST };
-    enum capture_type { CT_INDEX,CT_LIST,CT_BINARY };
-
-    int offset;
-    enum valuespec vs;
-    enum capture_type ct;
-    ERL_NIF_TERM vlist;
-
-    matchoptions():offset(0), vs(VS_ALL), ct(CT_BINARY) {};
-    void info() const {
-      printf("matchoptions offset:%d vs:%d ct:%d",
-             offset,vs,ct);
-      printf("\n");
-    }
-  };
-
-  template <typename T>
-  class autohandle {
-  private: bool keep_;  T* ptr_;
-  public:
-    autohandle():keep_(false),ptr_(NULL){}
-    autohandle(T* ptr,bool keep=false):keep_(keep),ptr_(ptr_){}
-    void set(T* ptr,bool keep=false) { ptr_=ptr; keep_=keep; }
-    ~autohandle() { if (!keep_) { delete ptr_; ptr_=NULL; } }
-    T* operator->() { return ptr_; }
-  };
-}
-
-static bool parse_matchoptions(ErlNifEnv* env, const ERL_NIF_TERM list,
-                               matchoptions& opts, ERL_NIF_TERM *err);
-
+static bool parse_compile_options(ErlNifEnv* env, const ERL_NIF_TERM list,
+                                  options* opts, ERL_NIF_TERM *err);
+static bool parse_match_options(ErlNifEnv* env, const ERL_NIF_TERM list,
+                          options* opts, ERL_NIF_TERM *err);
 static ERL_NIF_TERM mres(ErlNifEnv* env,
                          const re2::StringPiece& str,
                          const re2::StringPiece& match,
-                         const matchoptions::capture_type ct);
+                         const options::capture_type ct);
 
 
 
@@ -110,7 +116,16 @@ static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
     const re2::StringPiece p((const char*)pdata.data, pdata.size);
     re2_handle* handle = (re2_handle*)enif_alloc_resource(
         env, re2_resource, sizeof(re2_handle));
-    handle->re = new RE2(p);
+    handle->opts = new options();
+    ERL_NIF_TERM opterr;
+    if (argc == 2 && !parse_compile_options(env, argv[1],
+                                            handle->opts, &opterr))
+    {
+      delete handle->opts;
+      handle->opts = NULL;
+      return opterr;
+    }
+    handle->re = new RE2(p,handle->opts->re2opts);
 
     ERL_NIF_TERM result = enif_make_resource(env, handle);
     enif_release_resource(env, handle);
@@ -130,6 +145,12 @@ static void re2_resource_cleanup(ErlNifEnv* env, void* arg)
   {
     delete handle->re;
     handle->re = NULL;
+  }
+
+  if (handle->opts != NULL)
+  {
+    delete handle->opts;
+    handle->opts = NULL;
   }
 }
 
@@ -156,18 +177,21 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
   {
     const re2::StringPiece s((const char*)sdata.data, sdata.size);
     autohandle<RE2> re;
+    autohandle<options> opts;
     re2_handle* handle;
     ErlNifBinary pdata;
 
     if (enif_get_resource(env, argv[1], re2_resource, (void**)&handle)
         && handle->re != NULL)
     {
-      re.set(handle->re,true);
+      re.set(handle->re, true);
+      opts.set(handle->opts, true);
     }
     else if (enif_inspect_iolist_as_binary(env, argv[1], &pdata))
     {
       const re2::StringPiece p((const char*)pdata.data, pdata.size);
       re.set(new RE2(p));
+      opts.set(new options());
     }
     else
     {
@@ -183,35 +207,34 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
     if (argc < 2 || argc > 3)
       return enif_make_badarg(env);
 
-    matchoptions opts;
     ERL_NIF_TERM opterr;
-    if (argc == 3 && !parse_matchoptions(env, argv[2], opts, &opterr))
+    if (argc == 3 && !parse_match_options(env, argv[2], &opts, &opterr))
       return opterr;
 
     //opts.info();
     //printf("match '%s' '%s'\n", s.as_string().c_str(), re->pattern().c_str());
-    if (re->Match(s,opts.offset,RE2::UNANCHORED,group,n)) {
+    if (re->Match(s,opts->offset,RE2::UNANCHORED,group,n)) {
 
       int start = 0;
       int arrsz = n;
 
-      if (opts.vs == matchoptions::VS_NONE) {
+      if (opts->vs == options::VS_NONE) {
         // return match atom only
         return a_match;
 
-      } else if (opts.vs == matchoptions::VS_FIRST) {
+      } else if (opts->vs == options::VS_FIRST) {
         // return first match only
-        ERL_NIF_TERM first = mres(env, s, group[0], opts.ct);
+        ERL_NIF_TERM first = mres(env, s, group[0], opts->ct);
         return enif_make_tuple2(env, a_match,
             enif_make_list1(env, first));
 
-      } else if (opts.vs == matchoptions::VS_ALL_BUT_FIRST) {
+      } else if (opts->vs == options::VS_ALL_BUT_FIRST) {
         // skip first match
         start = 1;
         arrsz--;
       }
 
-      if (opts.vs == matchoptions::VS_VLIST) {
+      if (opts->vs == options::VS_VLIST) {
         // return subpatterns as specified in ValueList
 
         std::vector<ERL_NIF_TERM> vec;
@@ -226,7 +249,7 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
         // empty StringPiece for unfound ValueIds
         const re2::StringPiece empty;
 
-        for (VL=opts.vlist; enif_get_list_cell(env, VL, &VH, &VT); VL=VT) {
+        for (VL=opts->vlist; enif_get_list_cell(env, VL, &VH, &VT); VL=VT) {
           int nid = 0;
           if (enif_get_int(env, VH, &nid) && nid > 0) {
 
@@ -235,12 +258,12 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
             if (nid < n) {
               const re2::StringPiece match = group[nid];
               if (!match.empty())
-                vec.push_back(mres(env, s, group[nid], opts.ct));
+                vec.push_back(mres(env, s, group[nid], opts->ct));
               else
-                vec.push_back(mres(env, s, empty, opts.ct));
+                vec.push_back(mres(env, s, empty, opts->ct));
 
             } else {
-              vec.push_back(mres(env, s, empty, opts.ct));
+              vec.push_back(mres(env, s, empty, opts->ct));
             }
 
           } else if (enif_is_atom(env, VH)) {
@@ -256,9 +279,9 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
                 nmap.find(a_id);
               if (it != nmap.end()) {
                 re2::StringPiece match = group[it->second];
-                vec.push_back(mres(env, s, group[it->second], opts.ct));
+                vec.push_back(mres(env, s, group[it->second], opts->ct));
               } else {
-                vec.push_back(mres(env, s, empty, opts.ct));
+                vec.push_back(mres(env, s, empty, opts->ct));
               }
             }
             free(a_id);
@@ -279,9 +302,9 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
 
               if (it != nmap.end()) {
                 re2::StringPiece match = group[it->second];
-                vec.push_back(mres(env, s, group[it->second], opts.ct));
+                vec.push_back(mres(env, s, group[it->second], opts->ct));
               } else {
-                vec.push_back(mres(env, s, empty, opts.ct));
+                vec.push_back(mres(env, s, empty, opts->ct));
               }
             }
             free(str_id);
@@ -295,7 +318,7 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
 
         ERL_NIF_TERM arr[arrsz];
         for(int i = start, arridx=0; i < n; i++,arridx++)
-          arr[arridx] = mres(env, s, group[i], opts.ct);
+          arr[arridx] = mres(env, s, group[i], opts->ct);
 
         return enif_make_tuple2(env,
             a_match,
@@ -333,6 +356,7 @@ static void init_atoms(ErlNifEnv* env)
   a_none = enif_make_atom(env, "none");
   a_index = enif_make_atom(env, "index");
   a_binary = enif_make_atom(env, "binary");
+  a_caseless = enif_make_atom(env, "caseless");
   a_err_alloc_binary = enif_make_atom(env, "alloc_binary");
   a_err_offset_not_int = enif_make_atom(env, "offset_not_int");
   a_err_malloc_a_id = enif_make_atom(env, "malloc_a_id");
@@ -345,6 +369,24 @@ static ERL_NIF_TERM error(ErlNifEnv* env, ERL_NIF_TERM err)
   return enif_make_tuple2(env, a_error, err);
 }
 
+static bool parse_compile_options(ErlNifEnv* env, const ERL_NIF_TERM list,
+                                  options* opts, ERL_NIF_TERM *err)
+{
+  if (enif_is_empty_list(env, list))
+    return true;
+
+  ERL_NIF_TERM L,H,T;
+
+  for (L=list; enif_get_list_cell(env, L, &H, &T); L=T) {
+
+    if (enif_is_identical(env, H, a_caseless))
+      opts->re2opts.set_case_sensitive(false);
+
+  }
+
+  return true;
+}
+
 /*
 Options = [ Option ]
 Option = {offset, int()} | {capture, ValueSpec} | {capture, ValueSpec, Type}
@@ -353,8 +395,8 @@ ValueSpec = all | all_but_first | first | none | ValueList
 ValueList = [ ValueID ]
 ValueID = int() | string() | atom()
 */
-static bool parse_matchoptions(ErlNifEnv* env, const ERL_NIF_TERM list,
-                               matchoptions& opts, ERL_NIF_TERM *err)
+static bool parse_match_options(ErlNifEnv* env, const ERL_NIF_TERM list,
+                                options* opts, ERL_NIF_TERM *err)
 {
   if (enif_is_empty_list(env, list))
     return true;
@@ -364,6 +406,7 @@ static bool parse_matchoptions(ErlNifEnv* env, const ERL_NIF_TERM list,
   for (L=list; enif_get_list_cell(env, L, &H, &T); L=T) {
     const ERL_NIF_TERM *tuple;
     int tuplearity = -1;
+
     if (enif_get_tuple(env, H, &tuplearity, &tuple)) {
 
       if (tuplearity == 2 || tuplearity == 3) {
@@ -376,7 +419,7 @@ static bool parse_matchoptions(ErlNifEnv* env, const ERL_NIF_TERM list,
 
           int offset = 0;
           if (enif_get_int(env, tuple[1], &offset)) {
-            opts.offset = offset;
+            opts->offset = offset;
           } else {
             *err = error(env, a_err_offset_not_int);
             return false;
@@ -393,13 +436,13 @@ static bool parse_matchoptions(ErlNifEnv* env, const ERL_NIF_TERM list,
 
             if(enif_is_atom(env, tuple[1]) > 0) {
               if (enif_is_identical(env, tuple[1], a_all))
-                opts.vs = matchoptions::VS_ALL;
+                opts->vs = options::VS_ALL;
               else if (enif_is_identical(env, tuple[1], a_all_but_first))
-                opts.vs = matchoptions::VS_ALL_BUT_FIRST;
+                opts->vs = options::VS_ALL_BUT_FIRST;
               else if (enif_is_identical(env, tuple[1], a_first))
-                opts.vs = matchoptions::VS_FIRST;
+                opts->vs = options::VS_FIRST;
               else if (enif_is_identical(env, tuple[1], a_none))
-                opts.vs = matchoptions::VS_NONE;
+                opts->vs = options::VS_NONE;
 
               vs_set = true;
             }
@@ -410,18 +453,18 @@ static bool parse_matchoptions(ErlNifEnv* env, const ERL_NIF_TERM list,
             // ValueList = [ ValueID ]
             // ValueID = int() | string() | atom()
 
-            opts.vlist = tuple[1];
+            opts->vlist = tuple[1];
             vs_set = true;
-            opts.vs = matchoptions::VS_VLIST;
+            opts->vs = options::VS_VLIST;
           }
 
           // Type = index | binary
 
           if (tuplearity == 3 && vs_set) {
             if (enif_is_identical(env, tuple[2], a_index))
-              opts.ct = matchoptions::CT_INDEX;
+              opts->ct = options::CT_INDEX;
             else if (enif_is_identical(env, tuple[2], a_binary))
-              opts.ct = matchoptions::CT_BINARY;
+              opts->ct = options::CT_BINARY;
           }
         }
       }
@@ -434,11 +477,11 @@ static bool parse_matchoptions(ErlNifEnv* env, const ERL_NIF_TERM list,
 static ERL_NIF_TERM mres(ErlNifEnv* env,
                          const re2::StringPiece& str,
                          const re2::StringPiece& match,
-                         const matchoptions::capture_type ct)
+                         const options::capture_type ct)
 {
   switch (ct) {
     default:
-    case matchoptions::CT_INDEX:
+    case options::CT_INDEX:
       int l, r;
       if (match.empty()) {
         l = -1;
@@ -451,7 +494,7 @@ static ERL_NIF_TERM mres(ErlNifEnv* env,
                               enif_make_int(env, l),
                               enif_make_int(env, r));
       break;
-    case matchoptions::CT_BINARY:
+    case options::CT_BINARY:
       ErlNifBinary bmatch;
       if(!enif_alloc_binary(env, match.size(), &bmatch))
         return error(env, a_err_alloc_binary);
