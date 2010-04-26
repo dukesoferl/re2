@@ -49,6 +49,20 @@ typedef struct
   RE2* re;
 } re2_handle;
 
+static void re2_resource_cleanup(re2_handle* handle);
+static ERL_NIF_TERM error(ErlNifEnv* env, ERL_NIF_TERM err);
+static void init_atoms(ErlNifEnv* env);
+static bool parse_compile_options(ErlNifEnv* env, const ERL_NIF_TERM list,
+                                  options* opts, ERL_NIF_TERM *err);
+static bool parse_match_options(ErlNifEnv* env, const ERL_NIF_TERM list,
+                          options* opts, ERL_NIF_TERM *err);
+static ERL_NIF_TERM mres(ErlNifEnv* env,
+                         const re2::StringPiece& str,
+                         const re2::StringPiece& match,
+                         const options::capture_type ct);
+static ERL_NIF_TERM re2error(ErlNifEnv* env, const RE2* const re);
+
+
 extern "C" {
   // Prototypes
   static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
@@ -86,24 +100,27 @@ static ERL_NIF_TERM a_none;
 static ERL_NIF_TERM a_index;
 static ERL_NIF_TERM a_binary;
 static ERL_NIF_TERM a_caseless;
+static ERL_NIF_TERM a_err_undefined_option;
 static ERL_NIF_TERM a_err_alloc_binary;
 static ERL_NIF_TERM a_err_offset_not_int;
 static ERL_NIF_TERM a_err_malloc_a_id;
 static ERL_NIF_TERM a_err_malloc_str_id;
 static ERL_NIF_TERM a_err_re2_obj_not_ok;
-
-static ERL_NIF_TERM error(ErlNifEnv* env, ERL_NIF_TERM err);
-static void init_atoms(ErlNifEnv* env);
-
-static bool parse_compile_options(ErlNifEnv* env, const ERL_NIF_TERM list,
-                                  options* opts, ERL_NIF_TERM *err);
-static bool parse_match_options(ErlNifEnv* env, const ERL_NIF_TERM list,
-                          options* opts, ERL_NIF_TERM *err);
-static ERL_NIF_TERM mres(ErlNifEnv* env,
-                         const re2::StringPiece& str,
-                         const re2::StringPiece& match,
-                         const options::capture_type ct);
-
+static ERL_NIF_TERM a_re2_NoError;
+static ERL_NIF_TERM a_re2_ErrorInternal;
+static ERL_NIF_TERM a_re2_ErrorBadEscape;
+static ERL_NIF_TERM a_re2_ErrorBadCharClass;
+static ERL_NIF_TERM a_re2_ErrorBadCharRange;
+static ERL_NIF_TERM a_re2_ErrorMissingBracket;
+static ERL_NIF_TERM a_re2_ErrorMissingParen;
+static ERL_NIF_TERM a_re2_ErrorTrailingBackslash;
+static ERL_NIF_TERM a_re2_ErrorRepeatArgument;
+static ERL_NIF_TERM a_re2_ErrorRepeatSize;
+static ERL_NIF_TERM a_re2_ErrorRepeatOp;
+static ERL_NIF_TERM a_re2_ErrorBadPerlOp;
+static ERL_NIF_TERM a_re2_ErrorBadUTF8;
+static ERL_NIF_TERM a_re2_ErrorBadNamedCapture;
+static ERL_NIF_TERM a_re2_ErrorPatternTooLarge;
 
 
 static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
@@ -116,16 +133,24 @@ static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
     const re2::StringPiece p((const char*)pdata.data, pdata.size);
     re2_handle* handle = (re2_handle*)enif_alloc_resource(
         env, re2_resource, sizeof(re2_handle));
+    handle->opts = NULL;
+    handle->re = NULL;
+
     handle->opts = new options();
+    handle->opts->re2opts.set_log_errors(false);
     ERL_NIF_TERM opterr;
     if (argc == 2 && !parse_compile_options(env, argv[1],
                                             handle->opts, &opterr))
     {
-      delete handle->opts;
-      handle->opts = NULL;
+      re2_resource_cleanup(handle);
       return opterr;
     }
     handle->re = new RE2(p,handle->opts->re2opts);
+    if (!handle->re->ok()) {
+      ERL_NIF_TERM error = re2error(env, handle->re);
+      re2_resource_cleanup(handle);
+      return error;
+    }
 
     ERL_NIF_TERM result = enif_make_resource(env, handle);
     enif_release_resource(env, handle);
@@ -137,10 +162,8 @@ static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
   }
 }
 
-static void re2_resource_cleanup(ErlNifEnv* env, void* arg)
+static void re2_resource_cleanup(re2_handle* handle)
 {
-  // Delete any dynamically allocated memory stored in re2_handle
-  re2_handle* handle = (re2_handle*)arg;
   if (handle->re != NULL)
   {
     delete handle->re;
@@ -152,6 +175,13 @@ static void re2_resource_cleanup(ErlNifEnv* env, void* arg)
     delete handle->opts;
     handle->opts = NULL;
   }
+}
+
+static void re2_resource_cleanup(ErlNifEnv* env, void* arg)
+{
+  // Delete any dynamically allocated memory stored in re2_handle
+  re2_handle* handle = (re2_handle*)arg;
+  re2_resource_cleanup(handle);
 }
 
 static int on_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
@@ -190,8 +220,9 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
     else if (enif_inspect_iolist_as_binary(env, argv[1], &pdata))
     {
       const re2::StringPiece p((const char*)pdata.data, pdata.size);
-      re.set(new RE2(p));
       opts.set(new options());
+      opts->re2opts.set_log_errors(false);
+      re.set(new RE2(p,opts->re2opts));
     }
     else
     {
@@ -199,7 +230,7 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
     }
 
     if (!re->ok())
-      return error(env, a_err_re2_obj_not_ok);
+      return re2error(env, &re);
 
     int n = re->NumberOfCapturingGroups()+1;
     re2::StringPiece group[n];
@@ -357,11 +388,27 @@ static void init_atoms(ErlNifEnv* env)
   a_index = enif_make_atom(env, "index");
   a_binary = enif_make_atom(env, "binary");
   a_caseless = enif_make_atom(env, "caseless");
+  a_err_undefined_option = enif_make_atom(env, "undefined_option");
   a_err_alloc_binary = enif_make_atom(env, "alloc_binary");
   a_err_offset_not_int = enif_make_atom(env, "offset_not_int");
   a_err_malloc_a_id = enif_make_atom(env, "malloc_a_id");
   a_err_malloc_str_id = enif_make_atom(env, "malloc_str_id");
   a_err_re2_obj_not_ok = enif_make_atom(env, "re2_obj_not_ok");
+  a_re2_NoError = enif_make_atom(env, "no_error");
+  a_re2_ErrorInternal = enif_make_atom(env, "internal");
+  a_re2_ErrorBadEscape = enif_make_atom(env, "bad_escape");
+  a_re2_ErrorBadCharClass = enif_make_atom(env, "bad_char_class");
+  a_re2_ErrorBadCharRange = enif_make_atom(env, "bad_char_range");
+  a_re2_ErrorMissingBracket = enif_make_atom(env, "missing_bracket");
+  a_re2_ErrorMissingParen = enif_make_atom(env, "missing_paren");
+  a_re2_ErrorTrailingBackslash = enif_make_atom(env, "trailing_backslash");
+  a_re2_ErrorRepeatArgument = enif_make_atom(env, "repeat_argument");
+  a_re2_ErrorRepeatSize = enif_make_atom(env, "repeat_size");
+  a_re2_ErrorRepeatOp = enif_make_atom(env, "repeat_op");
+  a_re2_ErrorBadPerlOp = enif_make_atom(env, "bad_perl_op");
+  a_re2_ErrorBadUTF8 = enif_make_atom(env, "bad_utf8");
+  a_re2_ErrorBadNamedCapture = enif_make_atom(env, "bad_named_capture");
+  a_re2_ErrorPatternTooLarge = enif_make_atom(env, "pattern_too_large");
 }
 
 static ERL_NIF_TERM error(ErlNifEnv* env, ERL_NIF_TERM err)
@@ -379,9 +426,12 @@ static bool parse_compile_options(ErlNifEnv* env, const ERL_NIF_TERM list,
 
   for (L=list; enif_get_list_cell(env, L, &H, &T); L=T) {
 
-    if (enif_is_identical(env, H, a_caseless))
+    if (enif_is_identical(env, H, a_caseless)) {
       opts->re2opts.set_case_sensitive(false);
-
+    } else {
+      *err = error(env, a_err_undefined_option);
+      return false;
+    }
   }
 
   return true;
@@ -468,6 +518,9 @@ static bool parse_match_options(ErlNifEnv* env, const ERL_NIF_TERM list,
           }
         }
       }
+    } else {
+      *err = error(env, a_err_undefined_option);
+      return false;
     }
   }
 
@@ -502,4 +555,62 @@ static ERL_NIF_TERM mres(ErlNifEnv* env,
       return enif_make_binary(env, &bmatch);
       break;
   }
+}
+
+static ERL_NIF_TERM re2error(ErlNifEnv* env, const RE2* const re)
+{
+  ERL_NIF_TERM code;
+  switch (re->error_code()) {
+  case re2::RE2::ErrorInternal:          // Unexpected error
+    code = a_re2_ErrorInternal;
+    break;
+  // Parse errors
+  case re2::RE2::ErrorBadEscape:         // bad escape sequence
+    code = a_re2_ErrorBadEscape;
+    break;
+  case re2::RE2::ErrorBadCharClass:      // bad character class
+    code = a_re2_ErrorBadCharClass;
+    break;
+  case re2::RE2::ErrorBadCharRange:      // bad character class range
+    code = a_re2_ErrorBadCharRange;
+    break;
+  case re2::RE2::ErrorMissingBracket:    // missing closing ]
+    code = a_re2_ErrorMissingBracket;
+    break;
+  case re2::RE2::ErrorMissingParen:      // missing closing )
+    code = a_re2_ErrorMissingParen;
+    break;
+  case re2::RE2::ErrorTrailingBackslash: // trailing \ at end of regexp
+    code = a_re2_ErrorTrailingBackslash;
+    break;
+  case re2::RE2::ErrorRepeatArgument:    // repeat argument missing, e.g. "*"
+    code = a_re2_ErrorRepeatArgument;
+    break;
+  case re2::RE2::ErrorRepeatSize:        // bad repetition argument
+    code = a_re2_ErrorRepeatSize;
+    break;
+  case re2::RE2::ErrorRepeatOp:          // bad repetition operator
+    code = a_re2_ErrorRepeatOp;
+    break;
+  case re2::RE2::ErrorBadPerlOp:         // bad perl operator
+    code = a_re2_ErrorBadPerlOp;
+    break;
+  case re2::RE2::ErrorBadUTF8:           // invalid UTF-8 in regexp
+    code = a_re2_ErrorBadUTF8;
+    break;
+  case re2::RE2::ErrorBadNamedCapture:   // bad named capture group
+    code = a_re2_ErrorBadNamedCapture;
+    break;
+  case re2::RE2::ErrorPatternTooLarge:   // pattern too large (compile failed)
+    code = a_re2_ErrorPatternTooLarge;
+    break;
+  default:
+  case re2::RE2::NoError:
+    code = a_re2_NoError;
+    break;
+  }
+  return enif_make_tuple2(env, a_error,
+      enif_make_tuple4(env, a_err_re2_obj_not_ok, code,
+        enif_make_string(env, re->error().c_str(), ERL_NIF_LATIN1),
+        enif_make_string(env, re->error_arg().c_str(), ERL_NIF_LATIN1)));
 }

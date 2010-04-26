@@ -46,6 +46,15 @@ match(_,_,_) ->
 match_test() ->
   {ok, RegExA} = compile(<<"h.*o">>),
 
+  {error,undefined_option} = compile("test(?<name", [undefined]),
+  {error,undefined_option} = match("hello", RegExA, [ok]),
+  {error,undefined_option} = match("hello", "h.*o", [ok]),
+
+  {error,{re2_obj_not_ok,bad_perl_op,"invalid perl operator: (?<","(?<"}} =
+    compile("test(?<name"),
+  {error,{re2_obj_not_ok,bad_perl_op,"invalid perl operator: (?<","(?<"}} =
+    match("foobar", "test(?<name"),
+
   {match,[<<>>,<<>>,<<>>]} = match(
     <<"hello">>,
     RegExA,
@@ -102,6 +111,7 @@ match_test() ->
   nomatch = match(<<"olleh">>,<<"h.*o">>),
 
   {ok,RegExB} = compile("abc|(def)"),
+
   {match,[<<"abc">>,<<>>]} = match(
     "abc",
     RegExB),
@@ -111,16 +121,19 @@ match_test() ->
     RegExB),
 
   {ok, RegExC} = compile(<<"h.*o">>, [caseless]),
+
   {match, [<<"hElLo">>]} = match(
     "hElLo",
     RegExC,
     [{capture,first,binary}]),
+
   {match, [<<"Hello">>]} = match(
     "Hello",
     RegExC,
     [{capture,first,binary}]),
 
   {ok, RegExD} = compile(<<"h.*o">>),
+
   nomatch = match(
     "Hello",
     RegExD).
