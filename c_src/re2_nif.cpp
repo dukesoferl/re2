@@ -53,9 +53,9 @@ static void re2_resource_cleanup(re2_handle* handle);
 static ERL_NIF_TERM error(ErlNifEnv* env, ERL_NIF_TERM err);
 static void init_atoms(ErlNifEnv* env);
 static bool parse_compile_options(ErlNifEnv* env, const ERL_NIF_TERM list,
-                                  options* opts, ERL_NIF_TERM *err);
+                                  options* opts);
 static bool parse_match_options(ErlNifEnv* env, const ERL_NIF_TERM list,
-                          options* opts, ERL_NIF_TERM *err);
+                                options* opts);
 static ERL_NIF_TERM mres(ErlNifEnv* env,
                          const re2::StringPiece& str,
                          const re2::StringPiece& match,
@@ -100,12 +100,9 @@ static ERL_NIF_TERM a_none;
 static ERL_NIF_TERM a_index;
 static ERL_NIF_TERM a_binary;
 static ERL_NIF_TERM a_caseless;
-static ERL_NIF_TERM a_err_undefined_option;
 static ERL_NIF_TERM a_err_alloc_binary;
-static ERL_NIF_TERM a_err_offset_not_int;
 static ERL_NIF_TERM a_err_malloc_a_id;
 static ERL_NIF_TERM a_err_malloc_str_id;
-static ERL_NIF_TERM a_err_re2_obj_not_ok;
 static ERL_NIF_TERM a_re2_NoError;
 static ERL_NIF_TERM a_re2_ErrorInternal;
 static ERL_NIF_TERM a_re2_ErrorBadEscape;
@@ -138,12 +135,11 @@ static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
 
     handle->opts = new options();
     handle->opts->re2opts.set_log_errors(false);
-    ERL_NIF_TERM opterr;
     if (argc == 2 && !parse_compile_options(env, argv[1],
-                                            handle->opts, &opterr))
+                                            handle->opts))
     {
       re2_resource_cleanup(handle);
-      return opterr;
+      return enif_make_badarg(env);
     }
     handle->re = new RE2(p,handle->opts->re2opts);
     if (!handle->re->ok()) {
@@ -230,7 +226,7 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
     }
 
     if (!re->ok())
-      return re2error(env, &re);
+      return enif_make_badarg(env);
 
     int n = re->NumberOfCapturingGroups()+1;
     re2::StringPiece group[n];
@@ -238,9 +234,8 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
     if (argc < 2 || argc > 3)
       return enif_make_badarg(env);
 
-    ERL_NIF_TERM opterr;
-    if (argc == 3 && !parse_match_options(env, argv[2], &opts, &opterr))
-      return opterr;
+    if (argc == 3 && !parse_match_options(env, argv[2], &opts))
+      return enif_make_badarg(env);
 
     //opts.info();
     //printf("match '%s' '%s'\n", s.as_string().c_str(), re->pattern().c_str());
@@ -388,12 +383,9 @@ static void init_atoms(ErlNifEnv* env)
   a_index = enif_make_atom(env, "index");
   a_binary = enif_make_atom(env, "binary");
   a_caseless = enif_make_atom(env, "caseless");
-  a_err_undefined_option = enif_make_atom(env, "undefined_option");
   a_err_alloc_binary = enif_make_atom(env, "alloc_binary");
-  a_err_offset_not_int = enif_make_atom(env, "offset_not_int");
   a_err_malloc_a_id = enif_make_atom(env, "malloc_a_id");
   a_err_malloc_str_id = enif_make_atom(env, "malloc_str_id");
-  a_err_re2_obj_not_ok = enif_make_atom(env, "re2_obj_not_ok");
   a_re2_NoError = enif_make_atom(env, "no_error");
   a_re2_ErrorInternal = enif_make_atom(env, "internal");
   a_re2_ErrorBadEscape = enif_make_atom(env, "bad_escape");
@@ -417,7 +409,7 @@ static ERL_NIF_TERM error(ErlNifEnv* env, ERL_NIF_TERM err)
 }
 
 static bool parse_compile_options(ErlNifEnv* env, const ERL_NIF_TERM list,
-                                  options* opts, ERL_NIF_TERM *err)
+                                  options* opts)
 {
   if (enif_is_empty_list(env, list))
     return true;
@@ -429,7 +421,6 @@ static bool parse_compile_options(ErlNifEnv* env, const ERL_NIF_TERM list,
     if (enif_is_identical(env, H, a_caseless)) {
       opts->re2opts.set_case_sensitive(false);
     } else {
-      *err = error(env, a_err_undefined_option);
       return false;
     }
   }
@@ -446,7 +437,7 @@ ValueList = [ ValueID ]
 ValueID = int() | string() | atom()
 */
 static bool parse_match_options(ErlNifEnv* env, const ERL_NIF_TERM list,
-                                options* opts, ERL_NIF_TERM *err)
+                                options* opts)
 {
   if (enif_is_empty_list(env, list))
     return true;
@@ -471,7 +462,6 @@ static bool parse_match_options(ErlNifEnv* env, const ERL_NIF_TERM list,
           if (enif_get_int(env, tuple[1], &offset)) {
             opts->offset = offset;
           } else {
-            *err = error(env, a_err_offset_not_int);
             return false;
           }
 
@@ -519,7 +509,6 @@ static bool parse_match_options(ErlNifEnv* env, const ERL_NIF_TERM list,
         }
       }
     } else {
-      *err = error(env, a_err_undefined_option);
       return false;
     }
   }
@@ -610,7 +599,7 @@ static ERL_NIF_TERM re2error(ErlNifEnv* env, const RE2* const re)
     break;
   }
   return enif_make_tuple2(env, a_error,
-      enif_make_tuple4(env, a_err_re2_obj_not_ok, code,
+      enif_make_tuple3(env, code,
         enif_make_string(env, re->error().c_str(), ERL_NIF_LATIN1),
         enif_make_string(env, re->error_arg().c_str(), ERL_NIF_LATIN1)));
 }

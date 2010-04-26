@@ -46,14 +46,11 @@ match(_,_,_) ->
 match_test() ->
   {ok, RegExA} = compile(<<"h.*o">>),
 
-  {error,undefined_option} = compile("test(?<name", [undefined]),
-  {error,undefined_option} = match("hello", RegExA, [ok]),
-  {error,undefined_option} = match("hello", "h.*o", [ok]),
-
-  {error,{re2_obj_not_ok,bad_perl_op,"invalid perl operator: (?<","(?<"}} =
-    compile("test(?<name"),
-  {error,{re2_obj_not_ok,bad_perl_op,"invalid perl operator: (?<","(?<"}} =
-    match("foobar", "test(?<name"),
+  {'EXIT',{badarg,_}} = (catch compile("test(?<name", [undefined])),
+  {error,{bad_perl_op,_,_}} = compile("test(?<name"),
+  {'EXIT',{badarg,_}} = (catch match("hello", RegExA, [ok])),
+  {'EXIT',{badarg,_}} = (catch match("hello", "h.*o", [ok])),
+  {'EXIT',{badarg,_}} = (catch match("hello", "h(?<name.*o")),
 
   {match,[<<>>,<<>>,<<>>]} = match(
     <<"hello">>,
