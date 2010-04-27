@@ -9,7 +9,9 @@
          compile/1,
          compile/2,
          match/2,
-         match/3
+         match/3,
+         replace/3,
+         replace/4
         ]).
 
 -on_load(init/0).
@@ -37,16 +39,31 @@ match(_,_) ->
   ?NIF_NOT_LOADED.
 match(_,_,_) ->
   ?NIF_NOT_LOADED.
+replace(_,_,_) ->
+  ?NIF_NOT_LOADED.
+replace(_,_,_,_) ->
+  ?NIF_NOT_LOADED.
 
 %% ===================================================================
 %% EUnit tests
 %% ===================================================================
 -ifdef(TEST).
 
+replace_test() ->
+  <<"heLo worLd">> = replace("hello world","l+","L",[global]),
+  <<"heLo world">> = replace("hello world","l+","L"),
+  {error,replace} = replace("hello world","k+","L"),
+  {ok, RegExR0} = compile("l+"),
+  <<"heLo worLd">> = replace("hello world",RegExR0,"L",[global]),
+  <<"heLo world">> = replace("hello world",RegExR0,"L"),
+  {ok, RegExR1} = compile("k+"),
+  {error,replace} = replace("hello world",RegExR1,"L"),
+  {'EXIT',{badarg,_}} = (catch replace("hello world","l+","L",[unknown])).
+
 match_test() ->
   {ok, RegExA} = compile(<<"h.*o">>),
 
-  {'EXIT',{badarg,_}} = (catch compile("test(?<name", [undefined])),
+  {'EXIT',{badarg,_}} = (catch compile("test(?<name", [unknown])),
   {error,{bad_perl_op,_,_}} = compile("test(?<name"),
   {'EXIT',{badarg,_}} = (catch match("hello", RegExA, [ok])),
   {'EXIT',{badarg,_}} = (catch match("hello", "h.*o", [ok])),
