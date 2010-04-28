@@ -69,6 +69,9 @@ match_test() ->
   {'EXIT',{badarg,_}} = (catch match("hello", "h.*o", [ok])),
   {'EXIT',{badarg,_}} = (catch match("hello", "h(?<name.*o")),
 
+  match = match("heLlo", ".*ello", [caseless,{capture,none}]),
+  {'EXIT',{badarg,_}} = (catch match("Hello", RegExA, [caseless])),
+
   {match,[<<>>,<<>>,<<>>]} = match(
     <<"hello">>,
     RegExA,
