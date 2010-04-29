@@ -116,6 +116,11 @@ match_test() ->
     <<"(h)(.*)o">>,
     [{capture,all_but_first,binary}]),
 
+  {match,[<<"hello">>,<<"h">>,<<"ell">>]} = match(
+    <<"hello">>,
+    <<"(h)(.*)o">>,
+    [{capture,all,binary}]),
+
   {match,[{0,4}]} = match(
     <<"ello">>,
     <<"(h?)(.*)o">>,

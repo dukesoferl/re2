@@ -247,6 +247,7 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
 
     int n = re->NumberOfCapturingGroups()+1;
     std::vector<re2::StringPiece> group;
+    group.reserve(n);
 
     //opts.info();
     //printf("match '%s' '%s'\n", s.as_string().c_str(), re->pattern().c_str());
@@ -349,9 +350,10 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
                 enif_make_list_from_array(env,&vec[0],vec.size()));
 
       } else {
-        // return all matches
+        // return all or all_but_first matches
 
         std::vector<ERL_NIF_TERM> arr;
+        arr.reserve(n-start);
         for(int i = start, arridx=0; i < n; i++,arridx++)
           arr[arridx] = mres(env, s, group[i], opts.ct);
 
