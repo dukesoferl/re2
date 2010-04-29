@@ -43,7 +43,7 @@ namespace {
   private: bool keep_;  T* ptr_;
   public:
     autohandle():keep_(false),ptr_(NULL){}
-    autohandle(T* ptr,bool keep=false):keep_(keep),ptr_(ptr_){}
+    autohandle(T* ptr,bool keep=false):keep_(keep),ptr_(ptr){}
     void set(T* ptr,bool keep=false) { ptr_=ptr; keep_=keep; }
     ~autohandle() { if (!keep_) { delete ptr_; ptr_=NULL; } }
     T* operator->() const { return ptr_; }
@@ -246,11 +246,11 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
       return enif_make_badarg(env);
 
     int n = re->NumberOfCapturingGroups()+1;
-    re2::StringPiece group[n];
+    std::vector<re2::StringPiece> group;
 
     //opts.info();
     //printf("match '%s' '%s'\n", s.as_string().c_str(), re->pattern().c_str());
-    if (re->Match(s,opts.offset,re2::RE2::UNANCHORED,group,n)) {
+    if (re->Match(s,opts.offset,re2::RE2::UNANCHORED,&group[0],n)) {
 
       int start = 0;
       int arrsz = n;
@@ -272,7 +272,7 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
       }
 
       if (opts.vs == matchoptions::VS_VLIST) {
-        // return subpatterns as specified in ValueList
+        // return matched subpatterns as specified in ValueList
 
         std::vector<ERL_NIF_TERM> vec;
         const std::map<std::string, int>& nmap = re->NamedCapturingGroups();
@@ -345,19 +345,18 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
             free(str_id);
           }
         }
-        return enif_make_tuple2(env,
-                a_match,
+        return enif_make_tuple2(env, a_match,
                 enif_make_list_from_array(env,&vec[0],vec.size()));
 
       } else {
+        // return all matches
 
-        ERL_NIF_TERM arr[arrsz];
+        std::vector<ERL_NIF_TERM> arr;
         for(int i = start, arridx=0; i < n; i++,arridx++)
           arr[arridx] = mres(env, s, group[i], opts.ct);
 
-        return enif_make_tuple2(env,
-            a_match,
-            enif_make_list_from_array(env,arr,arrsz));
+        return enif_make_tuple2(env, a_match,
+            enif_make_list_from_array(env,&arr[0],arr.size()));
       }
 
     } else {
