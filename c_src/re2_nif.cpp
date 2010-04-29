@@ -352,13 +352,14 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
       } else {
         // return all or all_but_first matches
 
-        std::vector<ERL_NIF_TERM> arr;
-        arr.reserve(n-start);
+        ERL_NIF_TERM* arr = new ERL_NIF_TERM[n];
         for(int i = start, arridx=0; i < n; i++,arridx++)
           arr[arridx] = mres(env, s, group[i], opts.ct);
 
-        return enif_make_tuple2(env, a_match,
-            enif_make_list_from_array(env,&arr[0],arr.size()));
+        ERL_NIF_TERM list = enif_make_tuple2(env, a_match,
+            enif_make_list_from_array(env,arr,arrsz));
+        delete[] arr;
+        return list;
       }
 
     } else {
