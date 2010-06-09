@@ -12,6 +12,10 @@ automatically downloaded to `support/rebar` for local usage.
 or  
 `rebar compile eunit`  
 
+### OTP compatibility
+**re2** is compatible with R14. The last version compatible with R13B04  
+is accessible via the git tag **r13b04**.
+
 ## re2 sources
 
 [re2](http://code.google.com/p/re2/) dependency is automatically downloaded

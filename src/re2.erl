@@ -20,29 +20,31 @@
 -include_lib("eunit/include/eunit.hrl").
 -endif.
 
--define(NIF_NOT_LOADED, "NIF library not loaded").
+-define(nif_stub,nif_stub_error(?LINE)).
+nif_stub_error(Line) ->
+  erlang:nif_error({nif_not_loaded,module,?MODULE,line,Line}).
 
 init() ->
   case code:priv_dir(re2) of
-    {error, bad_name} ->
-      SoName = filename:join("../priv", re2_nif);
-    Dir ->
-      SoName = filename:join(Dir, re2_nif)
+   {error, bad_name} ->
+     SoName = filename:join("../priv", "re2_nif");
+   Dir ->
+     SoName = filename:join(Dir, "re2_nif")
   end,
   erlang:load_nif(SoName, 0).
 
 compile(_) ->
-  ?NIF_NOT_LOADED.
+  ?nif_stub.
 compile(_,_) ->
-  ?NIF_NOT_LOADED.
+  ?nif_stub.
 match(_,_) ->
-  ?NIF_NOT_LOADED.
+  ?nif_stub.
 match(_,_,_) ->
-  ?NIF_NOT_LOADED.
+  ?nif_stub.
 replace(_,_,_) ->
-  ?NIF_NOT_LOADED.
+  ?nif_stub.
 replace(_,_,_,_) ->
-  ?NIF_NOT_LOADED.
+  ?nif_stub.
 
 %% ===================================================================
 %% EUnit tests
