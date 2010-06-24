@@ -24,7 +24,9 @@ namespace {
     enum capture_type ct;
     ERL_NIF_TERM vlist;
 
-    matchoptions():caseless(false), offset(0), vs(VS_ALL), ct(CT_BINARY) {};
+    matchoptions(ErlNifEnv* env)
+      :caseless(false), offset(0), vs(VS_ALL), ct(CT_BINARY)
+    { vlist = enif_make_list(env, 0); }
     void info() const {
       printf("options caseless:%d offset:%d vs:%d ct:%d\n",
              caseless,offset,vs,ct);
@@ -215,7 +217,7 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
     re2_handle* handle;
     ErlNifBinary pdata;
 
-    matchoptions opts;
+    matchoptions opts(env);
     if (argc == 3 && !parse_match_options(env, argv[2], opts))
       return enif_make_badarg(env);
 
