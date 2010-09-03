@@ -14,7 +14,7 @@ case "$1" in
   *)
     (test -d re2 || hg clone https://re2.googlecode.com/hg/ re2)
 
-    ERL_ARCH=`erl -noinput +B -eval \
+    ERL_ARCH=`erl -noinput -eval \
       'io:format("~B",[8 * erlang:system_info(wordsize)]),halt(0).'`
     CXXFLAGS="-Wall -O3 -fPIC -pthread"
     LDFLAGS="-pthread"
