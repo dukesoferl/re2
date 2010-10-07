@@ -29,11 +29,11 @@ load_nif() ->
               {error, _} ->
                 EbinDir = filename:dirname(code:which(?MODULE)),
                 AppPath = filename:dirname(EbinDir),
-                filename:join(AppPath, priv);
+                filename:join(AppPath, "priv");
               Path ->
                 Path
             end,
-  erlang:load_nif(filename:join(PrivDir, re2_nif), 0).
+  erlang:load_nif(filename:join(PrivDir, "re2_nif"), 0).
 
 compile(_) ->
   ?nif_stub.
