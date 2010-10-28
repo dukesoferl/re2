@@ -23,7 +23,7 @@ found(Rebar) ->
 %% Internal funs
 %%
 rebar_bin_url() ->
-  "http://bitbucket.org/basho/rebar/downloads/rebar".
+  "http://github.com/downloads/basho/rebar/rebar".
 
 obtain(bin) ->
   SupDir = filename:dirname(escript:script_name()),
