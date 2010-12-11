@@ -23,7 +23,7 @@ found(Rebar) ->
 %% Internal funs
 %%
 rebar_bin_url() ->
-  "http://github.com/downloads/basho/rebar/rebar".
+  "http://cloud.github.com/downloads/basho/rebar/rebar".
 
 obtain(bin) ->
   SupDir = filename:dirname(escript:script_name()),
@@ -36,7 +36,7 @@ obtain(bin) ->
         ok ->
           case is_escript(Rebar) of
             true ->
-              ok = chmodx(Rebar),
+              ok = file:change_mode(Rebar, 8#700),
               {ok, Rebar};
             false -> false
           end;
@@ -73,10 +73,6 @@ download(Url, File) ->
     {ok, {_Code,_}} -> false;
     _ -> false
   end.
-
-chmodx(File) ->
-  {ok, FileInfo} = file:read_file_info(File),
-  ok = file:write_file_info(File, FileInfo#file_info{mode=8#700}).
 
 is_escript(File) ->
   case filelib:is_regular(File) of
