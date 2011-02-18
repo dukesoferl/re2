@@ -10,11 +10,7 @@ automatically downloaded to `support/rebar` for local usage.
 ### To build and run eunit tests execute
 `make`  
 or  
-`rebar compile eunit`  
-
-### OTP compatibility
-**re2** is compatible with R14. The last version compatible with R13B04  
-is accessible via the git tag **r13b04**.
+`rebar compile eunit`
 
 ## re2 sources
 
