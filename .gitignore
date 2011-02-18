@@ -1,3 +1,4 @@
+ebin/re2.app
 ebin/*.beam
 .eunit
 c_src/*.o
