@@ -252,7 +252,7 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
 
     //opts.info();
     //printf("match '%s' '%s'\n", s.as_string().c_str(), re->pattern().c_str());
-    if (re->Match(s,opts.offset,re2::RE2::UNANCHORED,&group[0],n)) {
+    if (re->Match(s,opts.offset,s.size(),re2::RE2::UNANCHORED,&group[0],n)) {
 
       int start = 0;
       int arrsz = n;
