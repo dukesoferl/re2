@@ -1,10 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
 
-if [ `basename $PWD` != "c_src" ]; then
-  pushd c_src
-fi
+test `basename $PWD` != "c_src" && cd c_src
 
 case "$1" in
   clean)
@@ -12,6 +10,8 @@ case "$1" in
     ;;
 
   *)
+    test -f re2/obj/libre2.a && exit 0
+
     (test -d re2 || hg clone https://re2.googlecode.com/hg/ re2)
 
     ERL_ARCH=`erl -noinput -eval \
