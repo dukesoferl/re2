@@ -52,6 +52,18 @@ typedef struct
   re2::RE2* re;
 } re2_handle;
 
+/*
+ * Use a union for pointer type conversion to avoid compiler warnings
+ * about strict-aliasing violations with gcc-4.1. gcc >= 4.2 does not
+ * emit the warning.
+ * TODO: Reconsider use of union once gcc-4.1 is obsolete?
+ */
+typedef union
+{
+  void* vp;
+  re2_handle* p;
+} re2_handle_union;
+
 static void cleanup_handle(re2_handle* handle);
 static ERL_NIF_TERM error(ErlNifEnv* env, ERL_NIF_TERM err);
 static void init_atoms(ErlNifEnv* env);
@@ -214,17 +226,17 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
   {
     const re2::StringPiece s((const char*)sdata.data, sdata.size);
     autohandle<re2::RE2> re;
-    re2_handle* handle;
+    re2_handle_union handle;
     ErlNifBinary pdata;
 
     matchoptions opts(env);
     if (argc == 3 && !parse_match_options(env, argv[2], opts))
       return enif_make_badarg(env);
 
-    if (enif_get_resource(env, argv[1], re2_resource_type, (void**)&handle)
-        && handle->re != NULL)
+    if (enif_get_resource(env, argv[1], re2_resource_type, &handle.vp)
+        && handle.p->re != NULL)
     {
-      re.set(handle->re, true);
+      re.set(handle.p->re, true);
 
       if (opts.caseless) // caseless allowed either in compile or match
         return enif_make_badarg(env);
@@ -380,13 +392,13 @@ static ERL_NIF_TERM re2_replace(ErlNifEnv* env, int argc,
     std::string s((const char*)sdata.data, sdata.size);
     const re2::StringPiece r((const char*)rdata.data, rdata.size);
     autohandle<re2::RE2> re;
-    re2_handle* handle;
+    re2_handle_union handle;
     ErlNifBinary pdata;
 
-    if (enif_get_resource(env, argv[1], re2_resource_type, (void**)&handle)
-        && handle->re != NULL)
+    if (enif_get_resource(env, argv[1], re2_resource_type, &handle.vp)
+        && handle.p->re != NULL)
     {
-      re.set(handle->re, true);
+      re.set(handle.p->re, true);
     }
     else if (enif_inspect_iolist_as_binary(env, argv[1], &pdata))
     {
