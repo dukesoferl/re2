@@ -733,6 +733,6 @@ static char* alloc_str(ErlNifEnv* env, ERL_NIF_TERM list, unsigned* len)
   if (!enif_get_list_length(env, list, &list_len))
     return NULL;
   list_len++;
-  *len = ++list_len;
+  *len = list_len;
   return (char*)malloc(list_len);
 }
