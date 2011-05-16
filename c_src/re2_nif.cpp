@@ -116,6 +116,7 @@ static ERL_NIF_TERM a_none;
 static ERL_NIF_TERM a_index;
 static ERL_NIF_TERM a_binary;
 static ERL_NIF_TERM a_caseless;
+static ERL_NIF_TERM a_max_mem;
 static ERL_NIF_TERM a_err_alloc_binary;
 static ERL_NIF_TERM a_err_malloc_a_id;
 static ERL_NIF_TERM a_err_malloc_str_id;
@@ -451,6 +452,7 @@ static void init_atoms(ErlNifEnv* env)
   a_index = enif_make_atom(env, "index");
   a_binary = enif_make_atom(env, "binary");
   a_caseless = enif_make_atom(env, "caseless");
+  a_max_mem = enif_make_atom(env, "max_mem");
   a_err_alloc_binary = enif_make_atom(env, "alloc_binary");
   a_err_malloc_a_id = enif_make_atom(env, "malloc_a_id");
   a_err_malloc_str_id = enif_make_atom(env, "malloc_str_id");
@@ -479,7 +481,7 @@ static ERL_NIF_TERM error(ErlNifEnv* env, ERL_NIF_TERM err)
 
 /*
 Options = [ Option ]
-Option = caseless
+Option = caseless | {max_mem, int()}
 */
 static bool parse_compile_options(ErlNifEnv* env, const ERL_NIF_TERM list,
                                   re2::RE2::Options& opts)
@@ -490,9 +492,28 @@ static bool parse_compile_options(ErlNifEnv* env, const ERL_NIF_TERM list,
   ERL_NIF_TERM L,H,T;
 
   for (L=list; enif_get_list_cell(env, L, &H, &T); L=T) {
+    const ERL_NIF_TERM *tuple;
+    int tuplearity = -1;
 
     if (enif_is_identical(H, a_caseless)) {
       opts.set_case_sensitive(false);
+    } else if (enif_get_tuple(env, H, &tuplearity, &tuple)) {
+
+      if (tuplearity == 2) {
+
+        if (enif_is_identical(tuple[0], a_max_mem)) {
+
+          // {max_mem, int()}
+
+          int max_mem = 0;
+          if (enif_get_int(env, tuple[1], &max_mem)) {
+            opts.set_max_mem(max_mem);
+          } else {
+            return false;
+          }
+
+        }
+      }
     } else {
       return false;
     }
