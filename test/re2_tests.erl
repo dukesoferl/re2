@@ -6,6 +6,10 @@
 
 -include_lib("eunit/include/eunit.hrl").
 
+compile_test() ->
+  ?assertMatch({ok, _}, re2:compile(".*")),
+  ?assertMatch({error, _}, re2:compile(".*", [{max_mem, 4}])).
+
 replace_test() ->
   ?assertEqual(<<"heLo worLd">>, re2:replace("hello world","l+","L",[global])),
   ?assertEqual(<<"heLo world">>, re2:replace("hello world","l+","L")),
