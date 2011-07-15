@@ -101,7 +101,7 @@ extern "C" {
 
 
 // static variables
-static ErlNifResourceType* re2_resource;
+static ErlNifResourceType* re2_resource_type = NULL;
 static ERL_NIF_TERM a_ok;
 static ERL_NIF_TERM a_error;
 static ERL_NIF_TERM a_match;
@@ -142,10 +142,14 @@ static int on_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
 {
   ErlNifResourceFlags flags =
     (ErlNifResourceFlags)(ERL_NIF_RT_CREATE | ERL_NIF_RT_TAKEOVER);
-  re2_resource = enif_open_resource_type(env, "re2", "re2_resource",
-                                         &re2_resource_cleanup,
-                                         flags,
-                                         0);
+  ErlNifResourceType* rt = enif_open_resource_type(env, NULL, "re2_resource",
+                                                   &re2_resource_cleanup,
+                                                   flags,
+                                                   NULL);
+  if (rt == NULL)
+    return -1;
+
+  re2_resource_type = rt;
 
   init_atoms(env);
 
@@ -179,7 +183,7 @@ static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
   {
     const re2::StringPiece p((const char*)pdata.data, pdata.size);
     re2_handle* handle = (re2_handle*)enif_alloc_resource(
-        re2_resource, sizeof(re2_handle));
+      re2_resource_type, sizeof(re2_handle));
     handle->re = NULL;
 
     re2::RE2::Options re2opts;
@@ -222,7 +226,7 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
     if (argc == 3 && !parse_match_options(env, argv[2], opts))
       return enif_make_badarg(env);
 
-    if (enif_get_resource(env, argv[1], re2_resource, (void**)&handle)
+    if (enif_get_resource(env, argv[1], re2_resource_type, (void**)&handle)
         && handle->re != NULL)
     {
       re.set(handle->re, true);
@@ -386,7 +390,7 @@ static ERL_NIF_TERM re2_replace(ErlNifEnv* env, int argc,
     re2_handle* handle;
     ErlNifBinary pdata;
 
-    if (enif_get_resource(env, argv[1], re2_resource, (void**)&handle)
+    if (enif_get_resource(env, argv[1], re2_resource_type, (void**)&handle)
         && handle->re != NULL)
     {
       re.set(handle->re, true);
