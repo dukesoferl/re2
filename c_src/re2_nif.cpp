@@ -27,10 +27,6 @@ namespace {
     matchoptions(ErlNifEnv* env)
       :caseless(false), offset(0), vs(VS_ALL), ct(CT_BINARY)
     { vlist = enif_make_list(env, 0); }
-    void info() const {
-      printf("options caseless:%d offset:%d vs:%d ct:%d\n",
-             caseless,offset,vs,ct);
-    }
   };
 
   struct replaceoptions {
@@ -40,7 +36,7 @@ namespace {
 
   template <typename T>
   class autohandle {
-  private: bool keep_;  T* ptr_;
+  private: bool keep_; T* ptr_;
   public:
     autohandle():keep_(false),ptr_(NULL){}
     autohandle(T* ptr,bool keep=false):keep_(keep),ptr_(ptr){}
@@ -144,8 +140,7 @@ static int on_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     (ErlNifResourceFlags)(ERL_NIF_RT_CREATE | ERL_NIF_RT_TAKEOVER);
   ErlNifResourceType* rt = enif_open_resource_type(env, NULL, "re2_resource",
                                                    &re2_resource_cleanup,
-                                                   flags,
-                                                   NULL);
+                                                   flags, NULL);
   if (rt == NULL)
     return -1;
 
@@ -255,8 +250,6 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
     std::vector<re2::StringPiece> group;
     group.reserve(n);
 
-    //opts.info();
-    //printf("match '%s' '%s'\n", s.as_string().c_str(), re->pattern().c_str());
     if (re->Match(s,opts.offset,s.size(),re2::RE2::UNANCHORED,&group[0],n)) {
 
       int start = 0;
@@ -484,9 +477,9 @@ static ERL_NIF_TERM error(ErlNifEnv* env, ERL_NIF_TERM err)
 }
 
 /*
-Options = [ Option ]
-Option = caseless | {max_mem, int()}
-*/
+ * Options = [ Option ]
+ * Option = caseless | {max_mem, int()}
+ */
 static bool parse_compile_options(ErlNifEnv* env, const ERL_NIF_TERM list,
                                   re2::RE2::Options& opts)
 {
@@ -527,13 +520,14 @@ static bool parse_compile_options(ErlNifEnv* env, const ERL_NIF_TERM list,
 }
 
 /*
-Options = [ Option ]
-Option = caseless|{offset,int()}|{capture,ValueSpec}|{capture,ValueSpec,Type}
-Type = index | binary
-ValueSpec = all | all_but_first | first | none | ValueList
-ValueList = [ ValueID ]
-ValueID = int() | string() | atom()
-*/
+ * Options = [ Option ]
+ * Option = caseless | {offset, non_neg_integer()}
+ *          | {capture,ValueSpec} | {capture,ValueSpec,Type}
+ * Type = index | binary
+ * ValueSpec = all | all_but_first | first | none | ValueList
+ * ValueList = [ ValueID ]
+ * ValueID = int() | string() | atom()
+ */
 static bool parse_match_options(ErlNifEnv* env, const ERL_NIF_TERM list,
                                 matchoptions& opts)
 {
@@ -621,9 +615,9 @@ static bool parse_match_options(ErlNifEnv* env, const ERL_NIF_TERM list,
 }
 
 /*
-Options = [ Option ]
-Option = global
-*/
+ * Options = [ Option ]
+ * Option = global
+ */
 static bool parse_replace_options(ErlNifEnv* env, const ERL_NIF_TERM list,
                                   replaceoptions& opts)
 {

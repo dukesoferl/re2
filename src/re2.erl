@@ -5,18 +5,16 @@
 -module(re2).
 -author(tuncerayaz).
 
--export([
-         compile/1,
+-export([compile/1,
          compile/2,
          match/2,
          match/3,
          replace/3,
-         replace/4
-        ]).
+         replace/4]).
 
 -on_load(load_nif/0).
 
--define(nif_stub,nif_stub_error(?LINE)).
+-define(nif_stub, nif_stub_error(?LINE)).
 nif_stub_error(Line) ->
   erlang:nif_error({nif_not_loaded,module,?MODULE,line,Line}).
 
