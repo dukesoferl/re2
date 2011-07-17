@@ -20,7 +20,7 @@ nif_stub_error(Line) ->
 
 load_nif() ->
   PrivDir = case code:priv_dir(?MODULE) of
-              {error, _} ->
+              {error, bad_name} ->
                 EbinDir = filename:dirname(code:which(?MODULE)),
                 AppPath = filename:dirname(EbinDir),
                 filename:join(AppPath, "priv");
