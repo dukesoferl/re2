@@ -16,28 +16,28 @@
 
 -define(nif_stub, nif_stub_error(?LINE)).
 nif_stub_error(Line) ->
-  erlang:nif_error({nif_not_loaded,module,?MODULE,line,Line}).
+    erlang:nif_error({nif_not_loaded,module,?MODULE,line,Line}).
 
 load_nif() ->
-  PrivDir = case code:priv_dir(?MODULE) of
-              {error, bad_name} ->
-                EbinDir = filename:dirname(code:which(?MODULE)),
-                AppPath = filename:dirname(EbinDir),
-                filename:join(AppPath, "priv");
-              Path ->
-                Path
-            end,
-  erlang:load_nif(filename:join(PrivDir, "re2_nif"), 0).
+    PrivDir = case code:priv_dir(?MODULE) of
+                  {error, bad_name} ->
+                      EbinDir = filename:dirname(code:which(?MODULE)),
+                      AppPath = filename:dirname(EbinDir),
+                      filename:join(AppPath, "priv");
+                  Path ->
+                      Path
+              end,
+    erlang:load_nif(filename:join(PrivDir, "re2_nif"), 0).
 
 compile(_) ->
-  ?nif_stub.
+    ?nif_stub.
 compile(_,_) ->
-  ?nif_stub.
+    ?nif_stub.
 match(_,_) ->
-  ?nif_stub.
+    ?nif_stub.
 match(_,_,_) ->
-  ?nif_stub.
+    ?nif_stub.
 replace(_,_,_) ->
-  ?nif_stub.
+    ?nif_stub.
 replace(_,_,_,_) ->
-  ?nif_stub.
+    ?nif_stub.
