@@ -520,41 +520,41 @@ static ERL_NIF_TERM re2_replace(ErlNifEnv* env, int argc,
 
 static void init_atoms(ErlNifEnv* env)
 {
-    a_ok = enif_make_atom(env, "ok");
-    a_error = enif_make_atom(env, "error");
-    a_match = enif_make_atom(env, "match");
-    a_nomatch = enif_make_atom(env, "nomatch");
-    a_capture = enif_make_atom(env, "capture");
-    a_global = enif_make_atom(env, "global");
-    a_offset = enif_make_atom(env, "offset");
-    a_all = enif_make_atom(env, "all");
-    a_all_but_first = enif_make_atom(env, "all_but_first");
-    a_first = enif_make_atom(env, "first");
-    a_none = enif_make_atom(env, "none");
-    a_index = enif_make_atom(env, "index");
-    a_binary = enif_make_atom(env, "binary");
-    a_caseless = enif_make_atom(env, "caseless");
-    a_max_mem = enif_make_atom(env, "max_mem");
-    a_err_alloc_binary = enif_make_atom(env, "alloc_binary");
-    a_err_malloc_a_id = enif_make_atom(env, "malloc_a_id");
-    a_err_malloc_str_id = enif_make_atom(env, "malloc_str_id");
-    a_err_get_atom = enif_make_atom(env, "enif_get_atom");
-    a_err_get_string = enif_make_atom(env, "enif_get_string");
-    a_re2_NoError = enif_make_atom(env, "no_error");
-    a_re2_ErrorInternal = enif_make_atom(env, "internal");
-    a_re2_ErrorBadEscape = enif_make_atom(env, "bad_escape");
-    a_re2_ErrorBadCharClass = enif_make_atom(env, "bad_char_class");
-    a_re2_ErrorBadCharRange = enif_make_atom(env, "bad_char_range");
-    a_re2_ErrorMissingBracket = enif_make_atom(env, "missing_bracket");
-    a_re2_ErrorMissingParen = enif_make_atom(env, "missing_paren");
+    a_ok                         = enif_make_atom(env, "ok");
+    a_error                      = enif_make_atom(env, "error");
+    a_match                      = enif_make_atom(env, "match");
+    a_nomatch                    = enif_make_atom(env, "nomatch");
+    a_capture                    = enif_make_atom(env, "capture");
+    a_global                     = enif_make_atom(env, "global");
+    a_offset                     = enif_make_atom(env, "offset");
+    a_all                        = enif_make_atom(env, "all");
+    a_all_but_first              = enif_make_atom(env, "all_but_first");
+    a_first                      = enif_make_atom(env, "first");
+    a_none                       = enif_make_atom(env, "none");
+    a_index                      = enif_make_atom(env, "index");
+    a_binary                     = enif_make_atom(env, "binary");
+    a_caseless                   = enif_make_atom(env, "caseless");
+    a_max_mem                    = enif_make_atom(env, "max_mem");
+    a_err_alloc_binary           = enif_make_atom(env, "alloc_binary");
+    a_err_malloc_a_id            = enif_make_atom(env, "malloc_a_id");
+    a_err_malloc_str_id          = enif_make_atom(env, "malloc_str_id");
+    a_err_get_atom               = enif_make_atom(env, "enif_get_atom");
+    a_err_get_string             = enif_make_atom(env, "enif_get_string");
+    a_re2_NoError                = enif_make_atom(env, "no_error");
+    a_re2_ErrorInternal          = enif_make_atom(env, "internal");
+    a_re2_ErrorBadEscape         = enif_make_atom(env, "bad_escape");
+    a_re2_ErrorBadCharClass      = enif_make_atom(env, "bad_char_class");
+    a_re2_ErrorBadCharRange      = enif_make_atom(env, "bad_char_range");
+    a_re2_ErrorMissingBracket    = enif_make_atom(env, "missing_bracket");
+    a_re2_ErrorMissingParen      = enif_make_atom(env, "missing_paren");
     a_re2_ErrorTrailingBackslash = enif_make_atom(env, "trailing_backslash");
-    a_re2_ErrorRepeatArgument = enif_make_atom(env, "repeat_argument");
-    a_re2_ErrorRepeatSize = enif_make_atom(env, "repeat_size");
-    a_re2_ErrorRepeatOp = enif_make_atom(env, "repeat_op");
-    a_re2_ErrorBadPerlOp = enif_make_atom(env, "bad_perl_op");
-    a_re2_ErrorBadUTF8 = enif_make_atom(env, "bad_utf8");
-    a_re2_ErrorBadNamedCapture = enif_make_atom(env, "bad_named_capture");
-    a_re2_ErrorPatternTooLarge = enif_make_atom(env, "pattern_too_large");
+    a_re2_ErrorRepeatArgument    = enif_make_atom(env, "repeat_argument");
+    a_re2_ErrorRepeatSize        = enif_make_atom(env, "repeat_size");
+    a_re2_ErrorRepeatOp          = enif_make_atom(env, "repeat_op");
+    a_re2_ErrorBadPerlOp         = enif_make_atom(env, "bad_perl_op");
+    a_re2_ErrorBadUTF8           = enif_make_atom(env, "bad_utf8");
+    a_re2_ErrorBadNamedCapture   = enif_make_atom(env, "bad_named_capture");
+    a_re2_ErrorPatternTooLarge   = enif_make_atom(env, "pattern_too_large");
 }
 
 /*
