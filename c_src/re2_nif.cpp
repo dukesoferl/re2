@@ -52,14 +52,13 @@ typedef struct
     re2::RE2* re;
 } re2_handle;
 
-/*
- * Use a union for pointer type conversion to avoid compiler warnings
- * about strict-aliasing violations with gcc-4.1. gcc >= 4.2 does not
- * emit the warning.
- * TODO: Reconsider use of union once gcc-4.1 is obsolete?
- */
-typedef union
-{
+//
+// Use a union for pointer type conversion to avoid compiler warnings
+// about strict-aliasing violations with gcc-4.1. gcc >= 4.2 does not
+// emit the warning.
+// TODO: Reconsider use of union once gcc-4.1 is obsolete?
+//
+union re2_handle_union {
     void* vp;
     re2_handle* p;
 } re2_handle_union;
@@ -556,10 +555,10 @@ static void init_atoms(ErlNifEnv* env)
     a_re2_ErrorPatternTooLarge   = enif_make_atom(env, "pattern_too_large");
 }
 
-/*
- * Options = [ Option ]
- * Option = caseless | {max_mem, int()}
- */
+//
+// Options = [ Option ]
+// Option = caseless | {max_mem, int()}
+//
 static bool parse_compile_options(ErlNifEnv* env, const ERL_NIF_TERM list,
                                   re2::RE2::Options& opts)
 {
@@ -602,15 +601,15 @@ static bool parse_compile_options(ErlNifEnv* env, const ERL_NIF_TERM list,
     return true;
 }
 
-/*
- * Options = [ Option ]
- * Option = caseless | {offset, non_neg_integer()}
- *          | {capture,ValueSpec} | {capture,ValueSpec,Type}
- * Type = index | binary
- * ValueSpec = all | all_but_first | first | none | ValueList
- * ValueList = [ ValueID ]
- * ValueID = int() | string() | atom()
- */
+//
+// Options = [ Option ]
+// Option = caseless | {offset, non_neg_integer()}
+//          | {capture,ValueSpec} | {capture,ValueSpec,Type}
+// Type = index | binary
+// ValueSpec = all | all_but_first | first | none | ValueList
+// ValueList = [ ValueID ]
+// ValueID = int() | string() | atom()
+//
 static bool parse_match_options(ErlNifEnv* env, const ERL_NIF_TERM list,
                                 matchoptions& opts)
 {
@@ -707,10 +706,10 @@ static void parse_match_capture_options(ErlNifEnv* env, matchoptions& opts,
     }
 }
 
-/*
- * Options = [ Option ]
- * Option = global
- */
+//
+// Options = [ Option ]
+// Option = global
+//
 static bool parse_replace_options(ErlNifEnv* env, const ERL_NIF_TERM list,
                                   replaceoptions& opts)
 {
@@ -730,9 +729,9 @@ static bool parse_replace_options(ErlNifEnv* env, const ERL_NIF_TERM list,
     return true;
 }
 
-/*
- * build result for re2:replace
- */
+//
+// build result for re2:replace
+//
 static ERL_NIF_TERM rres(ErlNifEnv* env, const std::string& s)
 {
     ErlNifBinary bsubst;
@@ -742,9 +741,9 @@ static ERL_NIF_TERM rres(ErlNifEnv* env, const std::string& s)
     return enif_make_binary(env, &bsubst);
 }
 
-/*
- * build result for re2:match
- */
+//
+// build result for re2:match
+//
 static ERL_NIF_TERM mres(ErlNifEnv* env,
                          const re2::StringPiece& str,
                          const re2::StringPiece& match,
@@ -780,9 +779,9 @@ static ERL_NIF_TERM error(ErlNifEnv* env, const ERL_NIF_TERM err)
     return enif_make_tuple2(env, a_error, err);
 }
 
-/*
- * convert RE2 error code to error term
- */
+//
+// convert RE2 error code to error term
+//
 static ERL_NIF_TERM re2error(ErlNifEnv* env, const re2::RE2* const re)
 {
     ERL_NIF_TERM code;
