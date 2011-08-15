@@ -517,7 +517,6 @@ static ERL_NIF_TERM re2_replace(ErlNifEnv* env, int argc,
 // internal functions
 //
 
-
 static void init_atoms(ErlNifEnv* env)
 {
     a_ok                         = enif_make_atom(env, "ok");
@@ -729,7 +728,6 @@ static bool parse_replace_options(ErlNifEnv* env, const ERL_NIF_TERM list,
     }
 
     return true;
-
 }
 
 /*
@@ -753,6 +751,13 @@ static ERL_NIF_TERM mres(ErlNifEnv* env,
                          const matchoptions::capture_type ct)
 {
     switch (ct) {
+    case matchoptions::CT_BINARY:
+        ErlNifBinary bmatch;
+        if(!enif_alloc_binary(match.size(), &bmatch))
+            return a_err_alloc_binary;
+        memcpy(bmatch.data, match.data(), match.size());
+        return enif_make_binary(env, &bmatch);
+        break;
     default:
     case matchoptions::CT_INDEX:
         int l, r;
@@ -766,13 +771,6 @@ static ERL_NIF_TERM mres(ErlNifEnv* env,
         return enif_make_tuple2(env,
                                 enif_make_int(env, l),
                                 enif_make_int(env, r));
-        break;
-    case matchoptions::CT_BINARY:
-        ErlNifBinary bmatch;
-        if(!enif_alloc_binary(match.size(), &bmatch))
-            return a_err_alloc_binary;
-        memcpy(bmatch.data, match.data(), match.size());
-        return enif_make_binary(env, &bmatch);
         break;
     }
 }
