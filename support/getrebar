@@ -1,88 +1,88 @@
 #!/usr/bin/env escript
-%% -*- mode:erlang;tab-width:2;erlang-indent-level:2;indent-tabs-mode:nil -*-
-%% ex: ft=erlang ts=2 sw=2 et
+%% -*- mode: erlang;erlang-indent-level: 4;indent-tabs-mode: nil -*-
+%% ex: ft=erlang ts=4 sw=4 et
 -include_lib("kernel/include/file.hrl").
 -author(tuncerayaz).
 
 main(_) ->
-  case os:find_executable("rebar") of
-    false ->
-      start_apps(),
-      case obtain(bin) of
-        {ok,Rebar} -> found(Rebar);
-        _ -> halt(1)
-      end;
-    RebarInPATH -> found(RebarInPATH)
-  end.
+    case os:find_executable("rebar") of
+        false ->
+            start_apps(),
+            case obtain(bin) of
+                {ok,Rebar} -> found(Rebar);
+                _ -> halt(1)
+            end;
+        RebarInPATH -> found(RebarInPATH)
+    end.
 
 found(Rebar) ->
-  io:format("~s", [Rebar]),
-  halt(0).
+    io:format("~s", [Rebar]),
+    halt(0).
 
 %%
 %% Internal funs
 %%
 rebar_bin_url() ->
-  "http://cloud.github.com/downloads/basho/rebar/rebar".
+    "http://cloud.github.com/downloads/basho/rebar/rebar".
 
 obtain(bin) ->
-  SupDir = filename:dirname(escript:script_name()),
-  Rebar = SupDir++"/rebar",
-  case is_escript(Rebar) of
-    true -> {ok, Rebar};
-    false ->
-      ok = idelete(Rebar),
-      try download(rebar_bin_url(), Rebar) of
-        ok ->
-          case is_escript(Rebar) of
-            true ->
-              ok = file:change_mode(Rebar, 8#700),
-              {ok, Rebar};
-            false -> false
-          end;
-        _ -> {error, download_failed}
-      catch
-        _:_ -> {error, unknown}
-      end
-  end.
+    SupDir = filename:dirname(escript:script_name()),
+    Rebar = SupDir++"/rebar",
+    case is_escript(Rebar) of
+        true -> {ok, Rebar};
+        false ->
+            ok = idelete(Rebar),
+            try download(rebar_bin_url(), Rebar) of
+                ok ->
+                    case is_escript(Rebar) of
+                        true ->
+                            ok = file:change_mode(Rebar, 8#700),
+                            {ok, Rebar};
+                        false -> false
+                    end;
+                _ -> {error, download_failed}
+            catch
+                _:_ -> {error, unknown}
+            end
+    end.
 
 start_apps() ->
-  ok = inets:start(),
-  ok = configure_http().
+    ok = inets:start(),
+    ok = configure_http().
 
 configure_http() ->
-  case os:getenv("http_proxy") of
-    "http://" ++ Proxy ->
-      [Host, Port] = string:tokens(Proxy, ":"),
-      httpc:setoption([{proxy, {Host,Port}}]);
-    _ -> ok
-  end.
+    case os:getenv("http_proxy") of
+        "http://" ++ Proxy ->
+            [Host, Port] = string:tokens(Proxy, ":"),
+            httpc:setoption([{proxy, {Host,Port}}]);
+        _ -> ok
+    end.
 
 idelete(File) ->
-  case file:delete(File) of
-    ok -> ok;
-    {error, enoent} -> ok
-  end.
+    case file:delete(File) of
+        ok -> ok;
+        {error, enoent} -> ok
+    end.
 
 download(Url, File) ->
-  HttpOpts = [{autoredirect,true}, {timeout, 30000}],
-  Opts = [{stream, File}],
-  case httpc:request(get, {Url, []}, HttpOpts, Opts) of
-    {ok, saved_to_file} -> ok;
-    {ok, {{_,_Code,_},_,_}} -> false;
-    {ok, {_Code,_}} -> false;
-    _ -> false
-  end.
+    HttpOpts = [{autoredirect,true}, {timeout, 30000}],
+    Opts = [{stream, File}],
+    case httpc:request(get, {Url, []}, HttpOpts, Opts) of
+        {ok, saved_to_file} -> ok;
+        {ok, {{_,_Code,_},_,_}} -> false;
+        {ok, {_Code,_}} -> false;
+        _ -> false
+    end.
 
 is_escript(File) ->
-  case filelib:is_regular(File) of
-    true ->
-      {ok, IOD} = file:open(File, [read]),
-      Line0 = file:read_line(IOD),
-      ok = file:close(IOD),
-      case Line0 of
-        {ok,"#!/usr/bin/env escript\n"} -> true;
-        _ -> false
-      end;
-    false -> false
-  end.
+    case filelib:is_regular(File) of
+        true ->
+            {ok, IOD} = file:open(File, [read]),
+            Line0 = file:read_line(IOD),
+            ok = file:close(IOD),
+            case Line0 of
+                {ok,"#!/usr/bin/env escript\n"} -> true;
+                _ -> false
+            end;
+        false -> false
+    end.
