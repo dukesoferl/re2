@@ -47,10 +47,9 @@ namespace {
     };
 }
 
-typedef struct
-{
+struct re2_handle {
     re2::RE2* re;
-} re2_handle;
+};
 
 //
 // Use a union for pointer type conversion to avoid compiler warnings
@@ -61,7 +60,7 @@ typedef struct
 union re2_handle_union {
     void* vp;
     re2_handle* p;
-} re2_handle_union;
+};
 
 static void cleanup_handle(re2_handle* handle);
 static void init_atoms(ErlNifEnv* env);
@@ -238,7 +237,7 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
     {
         const re2::StringPiece s((const char*)sdata.data, sdata.size);
         autohandle<re2::RE2> re;
-        re2_handle_union handle;
+        union re2_handle_union handle;
         ErlNifBinary pdata;
 
         matchoptions opts(env);
@@ -464,7 +463,7 @@ static ERL_NIF_TERM re2_replace(ErlNifEnv* env, int argc,
         std::string s((const char*)sdata.data, sdata.size);
         const re2::StringPiece r((const char*)rdata.data, rdata.size);
         autohandle<re2::RE2> re;
-        re2_handle_union handle;
+        union re2_handle_union handle;
         ErlNifBinary pdata;
 
         if (enif_get_resource(env, argv[1], re2_resource_type, &handle.vp)
