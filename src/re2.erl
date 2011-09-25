@@ -1,6 +1,9 @@
 %% Copyright 2010-2011 Tuncer Ayaz. All Rights Reserved.
 %% Use of this source code is governed by a BSD-style
 %% license that can be found in the LICENSE file.
+%%
+%% @doc Erlang NIF bindings for the
+%% <a href="https://code.google.com/p/re2/">re2</a> regex library
 
 -module(re2).
 -author(tuncerayaz).
@@ -11,6 +14,10 @@
          match/3,
          replace/3,
          replace/4]).
+
+-export_type([compile_option/0,
+              match_option/0,
+              replace_option/0]).
 
 -on_load(load_nif/0).
 
@@ -29,15 +36,51 @@ load_nif() ->
               end,
     erlang:load_nif(filename:join(PrivDir, "re2_nif"), 0).
 
+
+-type input()           :: iolist().
+-type pattern()         :: iolist().
+-type replacement()     :: iolist().
+
+-type match_option()    :: 'caseless' | {'offset', non_neg_integer()}
+                         | {'capture', value_spec()}
+                         | {'capture', value_spec(), value_spec_type()}.
+-type value_spec()      :: 'all' | 'all_but_first' | 'first' | 'none'
+                         | [value_id()].
+-type value_spec_type() :: 'index' | 'binary'.
+-type value_id()        :: non_neg_integer() | string() | atom().
+-type match_result()    :: 'match' | 'nomatch' | {'match', list()}.
+
+-type compile_option()  :: 'caseless' | {'max_mem', non_neg_integer()}.
+-type compile_result()  :: {'ok', binary()} | 'error'.
+
+-type replace_option()  :: 'global'.
+-type replace_result()  :: iolist() | 'error'.
+
+-spec compile(Pattern::pattern()) -> compile_result().
 compile(_) ->
     ?nif_stub.
+
+-spec compile(Pattern::pattern(),
+              Options::[compile_option()]) -> compile_result().
 compile(_,_) ->
     ?nif_stub.
+
+-spec match(Input::input(), Pattern::pattern()) -> match_result().
 match(_,_) ->
     ?nif_stub.
+
+-spec match(Input::input(), Pattern::pattern(),
+            Options::[match_option()]) -> match_result().
 match(_,_,_) ->
     ?nif_stub.
+
+-spec replace(Input::input(), Pattern::pattern(),
+              Replacement::replacement()) -> replace_result().
 replace(_,_,_) ->
     ?nif_stub.
+
+-spec replace(Input::input(), Pattern::pattern(),
+              Replacement::replacement(),
+              Options::[replace_option()]) -> replace_result().
 replace(_,_,_,_) ->
     ?nif_stub.

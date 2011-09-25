@@ -1,9 +1,12 @@
-.PHONY: all clean test
+.PHONY: all clean doc test
 
 REBAR=$(shell sh -c "PATH='$(PATH)':support which rebar||support/getrebar||echo false")
 
 all:
 	$(REBAR) compile eunit
+
+doc:
+	$(REBAR) doc
 
 clean:
 	$(REBAR) clean

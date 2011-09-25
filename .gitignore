@@ -1,6 +1,7 @@
 ebin/re2.app
 ebin/*.beam
 .eunit
+doc
 c_src/*.o
 c_src/re2
 priv
