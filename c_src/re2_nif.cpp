@@ -155,7 +155,7 @@ static ERL_NIF_TERM a_re2_ErrorBadNamedCapture;
 static ERL_NIF_TERM a_re2_ErrorPatternTooLarge;
 
 
-static int on_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
+static int on_load(ErlNifEnv* env, void**, ERL_NIF_TERM)
 {
     ErlNifResourceFlags flags =
         (ErlNifResourceFlags)(ERL_NIF_RT_CREATE | ERL_NIF_RT_TAKEOVER);
@@ -182,7 +182,7 @@ static void cleanup_handle(re2_handle* handle)
     }
 }
 
-static void re2_resource_cleanup(ErlNifEnv* env, void* arg)
+static void re2_resource_cleanup(ErlNifEnv*, void* arg)
 {
     // Delete any dynamically allocated memory stored in re2_handle
     re2_handle* handle = (re2_handle*)arg;
