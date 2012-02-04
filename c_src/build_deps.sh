@@ -14,27 +14,10 @@ case "$1" in
 
     (test -d re2 || hg clone https://re2.googlecode.com/hg/ re2)
 
-    ERL_ARCH=`erl -noinput -eval \
-      'io:format("~B",[8 * erlang:system_info(wordsize)]),halt(0).'`
-    CXXFLAGS="-Wall -O3 -fPIC -pthread"
-    LDFLAGS="-pthread"
-    MAKE_SHARED_LIBRARY="g++"
-
-    if [ `uname -s` = Darwin ]; then
-      MAKE_SHARED_LIBRARY="$MAKE_SHARED_LIBRARY -dynamiclib $LDFLAGS \
-        -exported_symbols_list libre2.symbols.darwin"
-    else
-      MAKE_SHARED_LIBRARY="$MAKE_SHARED_LIBRARY -shared \
-        -Wl,-soname,libre2.so.0,--version-script=libre2.symbols $LDFLAGS"
-    fi
-
-    if [ $ERL_ARCH -eq 32 ]; then
-      CXXFLAGS="$CXXFLAGS -m32"
-      MAKE_SHARED_LIBRARY="$MAKE_SHARED_LIBRARY -m32"
-    fi
-
-    (cd re2 && make -j2 CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" \
-      MAKE_SHARED_LIBRARY="$MAKE_SHARED_LIBRARY")
-
+    CXXFLAGS="-Wall -O3 -fPIC -pthread -m$ERLANG_ARCH"
+    CXX="${CXX:-c++} -m$ERLANG_ARCH"
+    which gmake 1>/dev/null 2>/dev/null && MAKE=gmake
+    MAKE=${MAKE:-make}
+    (cd re2 && $MAKE -j2 CXX="$CXX" CXXFLAGS="$CXXFLAGS")
     ;;
 esac
