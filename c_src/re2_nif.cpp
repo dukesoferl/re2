@@ -207,6 +207,7 @@ static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
         if (argc == 2 && !parse_compile_options(env, argv[1], re2opts))
         {
             cleanup_handle(handle);
+            enif_release_resource(handle);
             return enif_make_badarg(env);
         }
 
@@ -215,6 +216,7 @@ static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
         if (!handle->re->ok()) {
             ERL_NIF_TERM error = re2error(env, handle->re);
             cleanup_handle(handle);
+            enif_release_resource(handle);
             return error;
         }
 
