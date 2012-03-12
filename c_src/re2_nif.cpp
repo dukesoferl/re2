@@ -41,7 +41,7 @@ namespace {
         autohandle():keep_(false),ptr_(NULL){}
         autohandle(T* ptr,bool keep=false):keep_(keep), ptr_(ptr){}
         void set(T* ptr,bool keep=false) { ptr_=ptr; keep_=keep; }
-        ~autohandle() { if (!keep_) { delete ptr_; ptr_=NULL; } }
+        ~autohandle() { if (!keep_) { enif_free(ptr_); ptr_=NULL; } }
         T* operator->() const { return ptr_; }
         T* operator&() const { return ptr_; }
     };
@@ -134,8 +134,7 @@ static ERL_NIF_TERM a_binary;
 static ERL_NIF_TERM a_caseless;
 static ERL_NIF_TERM a_max_mem;
 static ERL_NIF_TERM a_err_alloc_binary;
-static ERL_NIF_TERM a_err_malloc_a_id;
-static ERL_NIF_TERM a_err_malloc_str_id;
+static ERL_NIF_TERM a_err_enif_alloc;
 static ERL_NIF_TERM a_err_get_atom;
 static ERL_NIF_TERM a_err_get_string;
 static ERL_NIF_TERM a_re2_NoError;
@@ -177,7 +176,8 @@ static void cleanup_handle(re2_handle* handle)
 {
     if (handle->re != NULL)
     {
-        delete handle->re;
+        handle->re->~RE2();
+        enif_free(handle->re);
         handle->re = NULL;
     }
 }
@@ -211,7 +211,14 @@ static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
             return enif_make_badarg(env);
         }
 
-        handle->re = new re2::RE2(p, re2opts);
+        re2::RE2 *re2 = (re2::RE2*)enif_alloc(sizeof(re2::RE2));
+        if (re2 == NULL)
+        {
+            cleanup_handle(handle);
+            enif_release_resource(handle);
+            return error(env, a_err_enif_alloc);
+        }
+        handle->re = new (re2) re2::RE2(p, re2opts); // placement new
 
         if (!handle->re->ok()) {
             ERL_NIF_TERM error = re2error(env, handle->re);
@@ -261,7 +268,10 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
             re2opts.set_log_errors(false);
             if (opts.caseless)
                 re2opts.set_case_sensitive(false);
-            re.set(new re2::RE2(p, re2opts));
+            re2::RE2* re2 = (re2::RE2*)enif_alloc(sizeof(re2::RE2));
+            if (re2 == NULL)
+                return error(env, a_err_enif_alloc);
+            re.set(new (re2) re2::RE2(p, re2opts)); // placement new
         }
         else
         {
@@ -316,11 +326,12 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
 
                 // return all or all_but_first matches
 
-                ERL_NIF_TERM* arr = new ERL_NIF_TERM[n];
+                ERL_NIF_TERM* arr =
+                    (ERL_NIF_TERM*)enif_alloc(sizeof(ERL_NIF_TERM)*n);
                 for(int i = start, arridx=0; i < n; i++,arridx++) {
                     ERL_NIF_TERM res = mres(env, s, group[i], opts.ct);
                     if (enif_is_identical(res, a_err_alloc_binary)) {
-                        delete[] arr;
+                        enif_free(arr);
                         return error(env, a_err_alloc_binary);
                     } else {
                         arr[arridx] = res;
@@ -328,7 +339,7 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
                 }
 
                 ERL_NIF_TERM list = enif_make_list_from_array(env,arr,arrsz);
-                delete[] arr;
+                enif_free(arr);
 
                 return enif_make_tuple2(env, a_match, list);
             }
@@ -389,7 +400,7 @@ static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
             unsigned atom_len;
             char *a_id = alloc_atom(env, VH, &atom_len);
             if (a_id == NULL)
-                return error(env, a_err_malloc_a_id);
+                return error(env, a_err_enif_alloc);
 
             if (enif_get_atom(env, VH, a_id, atom_len, ERL_NIF_LATIN1) > 0) {
                 std::map<std::string, int>::const_iterator it =
@@ -408,11 +419,11 @@ static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
             }
             else
             {
-                free(a_id);
+                enif_free(a_id);
                 return error(env, a_err_get_atom);
             }
 
-            free(a_id);
+            enif_free(a_id);
 
         } else {
 
@@ -421,7 +432,7 @@ static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
             unsigned str_len;
             char *str_id = alloc_str(env, VH, &str_len);
             if (str_id == NULL)
-                return error(env, a_err_malloc_str_id);
+                return error(env, a_err_enif_alloc);
 
             if (enif_get_string(env, VH, str_id, str_len,
                                 ERL_NIF_LATIN1) > 0)
@@ -442,11 +453,11 @@ static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
             }
             else
             {
-                free(str_id);
+                enif_free(str_id);
                 return error(env, a_err_get_string);
             }
 
-            free(str_id);
+            enif_free(str_id);
         }
     }
 
@@ -478,7 +489,10 @@ static ERL_NIF_TERM re2_replace(ErlNifEnv* env, int argc,
             const re2::StringPiece p((const char*)pdata.data, pdata.size);
             re2::RE2::Options re2opts;
             re2opts.set_log_errors(false);
-            re.set(new re2::RE2(p, re2opts));
+            re2::RE2* re2 = (re2::RE2*)enif_alloc(sizeof(re2::RE2));
+            if (re2 == NULL)
+                return error(env, a_err_enif_alloc);
+            re.set(new (re2) re2::RE2(p, re2opts)); // placement new
         }
         else
         {
@@ -535,8 +549,7 @@ static void init_atoms(ErlNifEnv* env)
     a_caseless                   = enif_make_atom(env, "caseless");
     a_max_mem                    = enif_make_atom(env, "max_mem");
     a_err_alloc_binary           = enif_make_atom(env, "alloc_binary");
-    a_err_malloc_a_id            = enif_make_atom(env, "malloc_a_id");
-    a_err_malloc_str_id          = enif_make_atom(env, "malloc_str_id");
+    a_err_enif_alloc             = enif_make_atom(env, "enif_alloc");
     a_err_get_atom               = enif_make_atom(env, "enif_get_atom");
     a_err_get_string             = enif_make_atom(env, "enif_get_string");
     a_re2_NoError                = enif_make_atom(env, "no_error");
@@ -853,7 +866,7 @@ static char* alloc_atom(ErlNifEnv* env, const ERL_NIF_TERM atom, unsigned* len)
         return NULL;
     atom_len++;
     *len = atom_len;
-    return (char*)malloc(atom_len);
+    return (char*)enif_alloc(atom_len);
 }
 
 static char* alloc_str(ErlNifEnv* env, const ERL_NIF_TERM list, unsigned* len)
@@ -863,5 +876,5 @@ static char* alloc_str(ErlNifEnv* env, const ERL_NIF_TERM list, unsigned* len)
         return NULL;
     list_len++;
     *len = list_len;
-    return (char*)malloc(list_len);
+    return (char*)enif_alloc(list_len);
 }
