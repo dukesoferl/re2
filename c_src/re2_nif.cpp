@@ -48,6 +48,7 @@ namespace {
 }
 
 struct re2_handle {
+    // RE2 objects are thread safe. no locking required.
     re2::RE2* re;
 };
 
