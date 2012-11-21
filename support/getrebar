@@ -2,14 +2,13 @@
 %% -*- mode: erlang;erlang-indent-level: 4;indent-tabs-mode: nil -*-
 %% ex: ft=erlang ts=4 sw=4 et
 -include_lib("kernel/include/file.hrl").
--author(tuncerayaz).
 
 main(_) ->
     case os:find_executable("rebar") of
         false ->
             start_apps(),
             case obtain(bin) of
-                {ok,Rebar} -> found(Rebar);
+                {ok, Rebar} -> found(Rebar);
                 _ -> halt(1)
             end;
         RebarInPATH -> found(RebarInPATH)
@@ -68,12 +67,12 @@ idelete(File) ->
     end.
 
 download(Url, File) ->
-    HttpOpts = [{autoredirect,true}, {timeout, 30000}],
+    HttpOpts = [{autoredirect, true}, {timeout, 30000}],
     Opts = [{stream, File}],
     case httpc:request(get, {Url, []}, HttpOpts, Opts) of
         {ok, saved_to_file} -> ok;
-        {ok, {{_,_Code,_},_,_}} -> false;
-        {ok, {_Code,_}} -> false;
+        {ok, {{_, _Code, _}, _, _}} -> false;
+        {ok, {_Code, _}} -> false;
         _ -> false
     end.
 
@@ -81,10 +80,10 @@ is_escript(File) ->
     case filelib:is_regular(File) of
         true ->
             {ok, IOD} = file:open(File, [read]),
-            Line0 = file:read_line(IOD),
+            Line = file:read_line(IOD),
             ok = file:close(IOD),
-            case Line0 of
-                {ok,"#!/usr/bin/env escript\n"} -> true;
+            case Line of
+                {ok, "#!/usr/bin/env escript\n"} -> true;
                 _ -> false
             end;
         false -> false
