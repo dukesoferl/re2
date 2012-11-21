@@ -23,7 +23,7 @@ found(Rebar) ->
 %% Internal funs
 %%
 rebar_bin_url() ->
-    "http://cloud.github.com/downloads/basho/rebar/rebar".
+    "https://raw.github.com/wiki/rebar/rebar/rebar".
 
 obtain(bin) ->
     SupDir = filename:dirname(escript:script_name()),
@@ -47,7 +47,10 @@ obtain(bin) ->
     end.
 
 start_apps() ->
-    ok = inets:start(),
+    ok = application:start(crypto),
+    ok = application:start(public_key),
+    ok = application:start(ssl),
+    ok = application:start(inets),
     ok = configure_http().
 
 configure_http() ->
