@@ -1,10 +1,10 @@
-.PHONY: all clean doc test dialyzer check
+.PHONY: all clean doc test dialyzer check eunit qc
 
 REBAR=@`sh -c "PATH='$(PATH)':support which rebar\
 	||support/getrebar||echo false"`
 
 all:
-	$(REBAR) compile eunit
+	$(REBAR) compile
 
 doc:
 	$(REBAR) doc
@@ -12,10 +12,15 @@ doc:
 clean:
 	$(REBAR) clean
 
-test:
+check: test dialyzer
+
+test: eunit qc
+
+eunit:
 	$(REBAR) eunit
+
+qc:
+	$(REBAR) qc
 
 dialyzer:
 	dialyzer -n -nn ebin
-
-check: test dialyzer
