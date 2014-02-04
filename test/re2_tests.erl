@@ -8,7 +8,11 @@
 
 compile_test() ->
     ?assertMatch({ok, _}, re2:compile(".*")),
-    ?assertMatch({error, _}, re2:compile(".*", [{max_mem, 4}])).
+    ?assertMatch({error, _}, re2:compile("(a")),
+    ?assertMatch({error, _}, re2:compile(".*", [{max_mem, 4}])),
+    ?assertMatch({'EXIT',{badarg,_}},
+                 (catch re2:compile("test(?<name", [unknown]))),
+    ?assertMatch({error,{bad_perl_op,_,_}}, re2:compile("test(?<name")).
 
 replace_test() ->
     ?assertEqual(<<"heLo worLd">>,
@@ -28,9 +32,6 @@ match_test() ->
     {ok, RegExA} = re2:compile(<<"h.*o">>),
 
     ?assertMatch({'EXIT',{badarg,_}},
-                 (catch re2:compile("test(?<name", [unknown]))),
-    ?assertMatch({error,{bad_perl_op,_,_}}, re2:compile("test(?<name")),
-    ?assertMatch({'EXIT',{badarg,_}},
                  (catch re2:match("hello", RegExA, [ok]))),
     ?assertMatch({'EXIT',{badarg,_}},
                  (catch re2:match("hello", "h.*o", [ok]))),
@@ -46,10 +47,6 @@ match_test() ->
                  re2:match(<<"hello">>, RegExA,
                            [{capture,['A',2,"B"],binary}])),
 
-    ?assertEqual({match,[<<>>,<<>>,<<>>]},
-                 re2:match(<<"hello">>, RegExA,
-                           [{capture,['A',2,"B"],binary}])),
-
     ?assertEqual({match,[{-1,0},{-1,0},{-1,0}]},
                  re2:match(<<"hello">>, <<"h.*o">>,
                            [{capture,['A',2,"B"],index}])),
@@ -57,6 +54,10 @@ match_test() ->
     ?assertEqual({match,[<<"ell">>,<<"o">>,<<"h">>]},
                  re2:match(<<"hello">>, <<"(?P<B>h)(?P<A>.*)(o)">>,
                            [{capture,['A',3,"B"],binary}])),
+
+    ?assertEqual({match,[{1,3},{4,1},{0,1}]},
+                 re2:match(<<"hello">>, <<"(?P<B>h)(?P<A>.*)(o)">>,
+                           [{capture,['A',3,"B"],index}])),
 
     ?assertEqual({match,[{0,5}]}, re2:match(<<"hello">>,
                                             <<"(?P<A>h)(?P<B>.*)o">>,
