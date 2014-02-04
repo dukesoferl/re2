@@ -37,9 +37,11 @@ load_nif() ->
     erlang:load_nif(filename:join(PrivDir, "re2_nif"), 0).
 
 
--type input()           :: iolist().
--type pattern()         :: iolist().
--type replacement()     :: iolist().
+-type uncompiled_pattern() :: iodata().
+-opaque compiled_pattern() :: binary().
+-type input()           :: iodata().
+-type pattern()         :: uncompiled_pattern() | compiled_pattern().
+-type replacement()     :: iodata().
 
 -type match_option()    :: 'caseless' | {'offset', non_neg_integer()}
                          | {'capture', value_spec()}
@@ -48,19 +50,19 @@ load_nif() ->
                          | [value_id()].
 -type value_spec_type() :: 'index' | 'binary'.
 -type value_id()        :: non_neg_integer() | string() | atom().
--type match_result()    :: 'match' | 'nomatch' | {'match', list()}.
+-type match_result()    :: 'match' | 'nomatch' | {'match', list()} | {'error', any()}.
 
 -type compile_option()  :: 'caseless' | {'max_mem', non_neg_integer()}.
--type compile_result()  :: {'ok', binary()} | 'error'.
+-type compile_result()  :: {'ok', compiled_pattern()} | {'error', any()}.
 
 -type replace_option()  :: 'global'.
--type replace_result()  :: iolist() | 'error'.
+-type replace_result()  :: iodata() | {'error', any()} | 'error'.
 
--spec compile(Pattern::pattern()) -> compile_result().
+-spec compile(Pattern::uncompiled_pattern()) -> compile_result().
 compile(_) ->
     ?nif_stub.
 
--spec compile(Pattern::pattern(),
+-spec compile(Pattern::uncompiled_pattern(),
               Options::[compile_option()]) -> compile_result().
 compile(_,_) ->
     ?nif_stub.
