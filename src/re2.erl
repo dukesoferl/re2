@@ -42,13 +42,13 @@ load_nif() ->
 
 
 -type uncompiled_regex() :: iodata().
-%% compile_regex/0 is an opaque datatype containing a compiled regex
+-opaque compiled_regex() :: any().
+%% compiled_regex/0 is an opaque datatype containing a compiled regex
 %% created by enif_make_resource(). Resources are totally opaque,
 %% which means the actual type is undefined. In the current Erlang vm
-%% they behave like empty binaries (<<>>) in Erlang land, but that
-%% could change in future releases. Therefore, make no assumptions,
-%% and always treat it as an opaque datatype.
--opaque compiled_regex() :: binary().
+%% they behave like empty (&lt;&lt;&gt;&gt;) binaries on the Erlang
+%% side, but that could change in future releases. Therefore, make no
+%% assumptions, and always treat it as an opaque datatype.
 -type subject() :: iodata().
 -type regex() :: uncompiled_regex() | compiled_regex().
 -type replacement() :: iodata().
@@ -63,9 +63,9 @@ load_nif() ->
 -type match_result() :: 'match' | 'nomatch' | {'match', list()}
                       | {'error', atom()}.
 
--type re2error() :: {atom(), string(), string()}.
+-type compile_error() :: {'error', {atom(), string(), string()}}.
 -type compile_option() :: 'caseless' | {'max_mem', non_neg_integer()}.
--type compile_result() :: {'ok', compiled_regex()} | {'error', re2error()}.
+-type compile_result() :: {'ok', compiled_regex()} | compile_error().
 
 -type replace_option() :: 'global'.
 -type replace_result() :: binary() | {'error', atom()} | 'error'.
