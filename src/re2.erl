@@ -68,7 +68,7 @@ load_nif() ->
 -type compile_result() :: {'ok', compiled_regex()} | compile_error().
 
 -type replace_option() :: 'global'.
--type replace_result() :: binary() | {'error', atom()} | 'error'.
+-type replace_result() :: binary() | {'error', atom()}.
 
 -spec compile(uncompiled_regex()) -> compile_result().
 compile(_) ->

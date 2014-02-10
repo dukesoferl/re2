@@ -18,13 +18,13 @@ replace_test() ->
     ?assertEqual(<<"heLo worLd">>,
                  re2:replace("hello world","l+","L",[global])),
     ?assertEqual(<<"heLo world">>, re2:replace("hello world","l+","L")),
-    ?assertEqual(error, re2:replace("hello world","k+","L")),
+    ?assertEqual(<<"hello world">>, re2:replace("hello world","k+","L")),
     {ok, RegExR0} = re2:compile("l+"),
     ?assertEqual(<<"heLo worLd">>,
                  re2:replace("hello world",RegExR0,"L",[global])),
     ?assertEqual(<<"heLo world">>, re2:replace("hello world",RegExR0,"L")),
     {ok, RegExR1} = re2:compile("k+"),
-    ?assertEqual(error, re2:replace("hello world",RegExR1,"L")),
+    ?assertEqual(<<"hello world">>, re2:replace("hello world",RegExR1,"L")),
     ?assertMatch({'EXIT', {badarg,_}},
                  (catch re2:replace("hello world","l+","L",[unknown]))).
 
