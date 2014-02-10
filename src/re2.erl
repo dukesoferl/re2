@@ -39,26 +39,26 @@ load_nif() ->
 
 -type uncompiled_pattern() :: iodata().
 -opaque compiled_pattern() :: binary().
--type input()           :: iodata().
--type pattern()         :: uncompiled_pattern() | compiled_pattern().
--type replacement()     :: iodata().
+-type input() :: iodata().
+-type pattern() :: uncompiled_pattern() | compiled_pattern().
+-type replacement() :: iodata().
 
--type match_option()    :: 'caseless' | {'offset', non_neg_integer()}
-                         | {'capture', value_spec()}
-                         | {'capture', value_spec(), value_spec_type()}.
--type value_spec()      :: 'all' | 'all_but_first' | 'first' | 'none'
-                         | [value_id()].
+-type match_option() :: 'caseless' | {'offset', non_neg_integer()}
+                      | {'capture', value_spec()}
+                      | {'capture', value_spec(), value_spec_type()}.
+-type value_spec() :: 'all' | 'all_but_first' | 'first' | 'none'
+                    | [value_id()].
 -type value_spec_type() :: 'index' | 'binary'.
--type value_id()        :: non_neg_integer() | string() | atom().
--type match_result()    :: 'match' | 'nomatch' | {'match', list()}
-                         | {'error', atom()}.
+-type value_id() :: non_neg_integer() | string() | atom().
+-type match_result() :: 'match' | 'nomatch' | {'match', list()}
+                      | {'error', atom()}.
 
--type re2error()        :: {atom(), string(), string()}.
--type compile_option()  :: 'caseless' | {'max_mem', non_neg_integer()}.
--type compile_result()  :: {'ok', compiled_pattern()} | {'error', re2error()}.
+-type re2error() :: {atom(), string(), string()}.
+-type compile_option() :: 'caseless' | {'max_mem', non_neg_integer()}.
+-type compile_result() :: {'ok', compiled_pattern()} | {'error', re2error()}.
 
--type replace_option()  :: 'global'.
--type replace_result()  :: binary() | {'error', atom()} | 'error'.
+-type replace_option() :: 'global'.
+-type replace_result() :: binary() | {'error', atom()} | 'error'.
 
 -spec compile(Pattern::uncompiled_pattern()) -> compile_result().
 compile(_) ->
