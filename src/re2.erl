@@ -51,13 +51,14 @@ load_nif() ->
 -type value_spec_type() :: 'index' | 'binary'.
 -type value_id()        :: non_neg_integer() | string() | atom().
 -type match_result()    :: 'match' | 'nomatch' | {'match', list()}
-                         | {'error', any()}.
+                         | {'error', atom()}.
 
+-type re2error()        :: {atom(), string(), string()}.
 -type compile_option()  :: 'caseless' | {'max_mem', non_neg_integer()}.
--type compile_result()  :: {'ok', compiled_pattern()} | {'error', any()}.
+-type compile_result()  :: {'ok', compiled_pattern()} | {'error', re2error()}.
 
 -type replace_option()  :: 'global'.
--type replace_result()  :: binary() | {'error', any()} | 'error'.
+-type replace_result()  :: binary() | {'error', atom()} | 'error'.
 
 -spec compile(Pattern::uncompiled_pattern()) -> compile_result().
 compile(_) ->
