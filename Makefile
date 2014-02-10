@@ -1,7 +1,7 @@
 .PHONY: all clean doc test dialyzer check
 
-REBAR=@`sh -c "PATH='$(PATH)':support which rebar\
-	||support/getrebar||echo false"`
+REBAR:=$(shell sh -c "PATH='$(PATH)':support which rebar\
+	||support/getrebar||echo false")
 
 all:
 	$(REBAR) compile eunit
@@ -13,9 +13,9 @@ clean:
 	$(REBAR) clean
 
 test:
-	$(REBAR) eunit
+	ERL_LIBS=$(CURDIR) $(REBAR) eunit
 
 dialyzer:
-	dialyzer -n -nn ebin
+	ERL_LIBS=$(CURDIR) dialyzer -n -nn ebin
 
 check: test dialyzer
