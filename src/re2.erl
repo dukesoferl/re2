@@ -57,7 +57,7 @@ load_nif() ->
 -type compile_result()  :: {'ok', compiled_pattern()} | {'error', any()}.
 
 -type replace_option()  :: 'global'.
--type replace_result()  :: iodata() | {'error', any()} | 'error'.
+-type replace_result()  :: binary() | {'error', any()} | 'error'.
 
 -spec compile(Pattern::uncompiled_pattern()) -> compile_result().
 compile(_) ->
