@@ -1,4 +1,4 @@
-.PHONY: all clean doc test
+.PHONY: all clean doc test dialyzer check
 
 REBAR=@`sh -c "PATH='$(PATH)':support which rebar\
 	||support/getrebar||echo false"`
@@ -14,3 +14,8 @@ clean:
 
 test:
 	$(REBAR) eunit
+
+dialyzer:
+	dialyzer -n -nn ebin
+
+check: test dialyzer

@@ -4,7 +4,7 @@
 
 **re2** is built with [rebar](http://bitbucket.org/basho/rebar/) and
 we do expect `rebar` to be in the search `PATH`.  
-If `rebar` can not be found in the search `PATH` it will be  
+If `rebar` can not be found in the search `PATH`, it will be  
 automatically downloaded to `support/rebar` for local usage.
 
 ### To build and run eunit tests execute
