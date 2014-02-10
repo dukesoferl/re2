@@ -42,6 +42,12 @@ load_nif() ->
 
 
 -type uncompiled_regex() :: iodata().
+%% compile_regex/0 is an opaque datatype containing a compiled regex
+%% created by enif_make_resource(). Resources are totally opaque,
+%% which means the actual type is undefined. In the current Erlang vm
+%% they behave like empty binaries (<<>>) in Erlang land, but that
+%% could change in future releases. Therefore, make no assumptions,
+%% and always treat it as an opaque datatype.
 -opaque compiled_regex() :: binary().
 -type subject() :: iodata().
 -type regex() :: uncompiled_regex() | compiled_regex().
