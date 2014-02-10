@@ -507,20 +507,28 @@ static ERL_NIF_TERM re2_replace(ErlNifEnv* env, int argc,
         if (argc == 4 && !parse_replace_options(env, argv[3], opts))
             return enif_make_badarg(env);
 
-        if (opts.global && re2::RE2::GlobalReplace(&s, *(&re), r))
+        if (opts.global)
         {
-            return rres(env, s);
-        }
-        else if (re2::RE2::Replace(&s, *(&re), r))
-        {
-            return rres(env, s);
+            if (re2::RE2::GlobalReplace(&s, *(&re), r))
+            {
+                return rres(env, s);
+            }
+            else
+            {
+                return a_error;
+            }
         }
         else
         {
-            return a_error;
+            if (re2::RE2::Replace(&s, *(&re), r))
+            {
+                return rres(env, s);
+            }
+            else
+            {
+                return a_error;
+            }
         }
-
-        return enif_make_badarg(env);
     }
     else
     {
