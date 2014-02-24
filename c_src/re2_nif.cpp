@@ -31,7 +31,7 @@ namespace {
 
     struct replaceoptions {
         bool global;
-        replaceoptions():global(false) {};
+        replaceoptions():global(false) {}
     };
 
     template <typename T>
@@ -113,7 +113,7 @@ extern "C" {
     static int on_load(ErlNifEnv* env, void** priv_data,
                        ERL_NIF_TERM load_info);
 
-    ERL_NIF_INIT(re2, nif_funcs, &on_load, NULL, NULL, NULL);
+    ERL_NIF_INIT(re2, nif_funcs, &on_load, NULL, NULL, NULL)
 } // extern "C"
 
 
@@ -779,7 +779,6 @@ static ERL_NIF_TERM mres(ErlNifEnv* env,
             return a_err_alloc_binary;
         memcpy(bmatch.data, match.data(), match.size());
         return enif_make_binary(env, &bmatch);
-        break;
     default:
     case matchoptions::CT_INDEX:
         int l, r;
@@ -793,7 +792,6 @@ static ERL_NIF_TERM mres(ErlNifEnv* env,
         return enif_make_tuple2(env,
                                 enif_make_int(env, l),
                                 enif_make_int(env, r));
-        break;
     }
 }
 
