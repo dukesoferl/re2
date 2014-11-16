@@ -73,7 +73,7 @@ configure_http() ->
     case os:getenv("http_proxy") of
         "http://" ++ Proxy ->
             [Host, Port] = string:tokens(Proxy, ":"),
-            httpc:setoption([{proxy, {Host,Port}}]);
+            httpc:set_options([{proxy, {Host, Port}}]);
         _ -> ok
     end.
 
