@@ -12,7 +12,7 @@ case "$1" in
   *)
     test -f re2/obj/libre2.a && exit 0
 
-    (test -d re2 || hg clone https://re2.googlecode.com/hg/ re2)
+    (test -d re2 || git clone https://github.com/google/re2.git re2)
 
     CXXFLAGS="-Wall -O3 -fPIC -pthread -m$ERLANG_ARCH"
     CXX="${CXX:-c++} -m$ERLANG_ARCH"
