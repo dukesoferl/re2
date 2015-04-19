@@ -1,0 +1,3 @@
+#!/bin/sh
+set -eu
+clang-format -i -style=file c_src/re2_nif.cpp
