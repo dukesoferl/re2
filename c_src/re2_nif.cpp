@@ -90,6 +90,13 @@ static ERL_NIF_TERM rres(ErlNifEnv* env, const std::string& s);
 static char* alloc_atom(ErlNifEnv* env, const ERL_NIF_TERM atom, unsigned* len);
 static char* alloc_str(ErlNifEnv* env, const ERL_NIF_TERM list, unsigned* len);
 
+#if ERL_NIF_MAJOR_VERSION > 2                                   \
+    || (ERL_NIF_MAJOR_VERSION == 2 && ERL_NIF_MINOR_VERSION >= 7)
+#define NIF_FUNC_ENTRY(name, arity, fun) {name, arity, fun, 0}
+#else
+#define NIF_FUNC_ENTRY(name, arity, fun) {name, arity, fun}
+#endif
+
 extern "C" {
     // Prototypes
     static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
@@ -101,12 +108,12 @@ extern "C" {
 
     static ErlNifFunc nif_funcs[] =
     {
-        {"compile", 1, re2_compile},
-        {"compile", 2, re2_compile},
-        {"match",   2, re2_match},
-        {"match",   3, re2_match},
-        {"replace", 3, re2_replace},
-        {"replace", 4, re2_replace},
+        NIF_FUNC_ENTRY("compile", 1, re2_compile),
+        NIF_FUNC_ENTRY("compile", 2, re2_compile),
+        NIF_FUNC_ENTRY("match",   2, re2_match),
+        NIF_FUNC_ENTRY("match",   3, re2_match),
+        NIF_FUNC_ENTRY("replace", 3, re2_replace),
+        NIF_FUNC_ENTRY("replace", 4, re2_replace),
     };
 
     static void re2_resource_cleanup(ErlNifEnv* env, void* arg);
