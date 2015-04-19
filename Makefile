@@ -12,6 +12,9 @@ doc:
 clean:
 	$(REBAR) clean
 
+distclean: clean
+	@rm -fr c_src/re2
+
 check: test dialyzer
 
 test: eunit qc
