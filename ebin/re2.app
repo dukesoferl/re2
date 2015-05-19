@@ -2,11 +2,12 @@
  [
   {description, "Erlang NIF bindings for the re2 regex library"},
   {vsn, "1.2.1"},
-  {modules, []},
+  {modules, [re2]},
   {registered, []},
-  {applications, [
-                  kernel,
-                  stdlib
-                 ]},
+  {applications,
+   [
+    kernel,
+    stdlib
+   ]},
   {env, []}
  ]}.
