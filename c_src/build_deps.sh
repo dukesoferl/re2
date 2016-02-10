@@ -14,7 +14,7 @@ case "$1" in
 
     (test -d re2 || git clone https://code.googlesource.com/re2)
 
-    CXXFLAGS="-Wall -O3 -fPIC -pthread -m$ERLANG_ARCH"
+    CXXFLAGS="-Wall -O3 -fPIC -pthread --std=c++11 -m$ERLANG_ARCH"
     CXX="${CXX:-c++} -m$ERLANG_ARCH"
     which gmake 1>/dev/null 2>/dev/null && MAKE=gmake
     MAKE=${MAKE:-make}
