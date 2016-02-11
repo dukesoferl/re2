@@ -12,10 +12,11 @@ case "$1" in
   *)
     test -f re2/obj/libre2.a && exit 0
 
+    RE2_REV=master
     (test -d re2 ||
         git clone https://code.googlesource.com/re2 &&
         cd re2 &&
-        git checkout 2016-02-01)
+        git checkout $RE2_REV)
 
     CXXFLAGS="-Wall -O3 -fPIC -pthread --std=c++11 -m$ERLANG_ARCH"
     CXX="${CXX:-c++} -m$ERLANG_ARCH"
