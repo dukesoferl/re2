@@ -7,10 +7,7 @@ we do expect `rebar` to be in the search `PATH`.
 If `rebar` can not be found in the search `PATH`, it will be  
 automatically downloaded to `support/rebar` for local usage.
 
-### To build and run eunit and qc tests, execute
-`make all test`  
-or  
-`rebar compile eunit`
+To build, execute `make` or `rebar compile`.
 
 ## re2 sources
 
