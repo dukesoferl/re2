@@ -1,0 +1,49 @@
+%% -*- mode: erlang;erlang-indent-level: 4;indent-tabs-mode: nil -*-
+%% ex: ts=4 sw=4 ft=erlang et
+
+CommonOpts =
+    [
+     {port_specs, [{"priv/re2_nif.so",["c_src/re2_nif.cpp"]}]},
+     {port_env,
+     [
+      {"DRV_CFLAGS",  "$DRV_CFLAGS -O3 -Wall -Wextra -I c_src/re2"},
+      {"DRV_LDFLAGS", "$DRV_LDFLAGS c_src/re2/obj/libre2.a"},
+      %% Make sure to link -lstdc++ on Linux, FreeBSD, or Solaris
+      %% TODO: support environments where libc++ is used instead.
+      {"(linux|freebsd|solaris)", "LDFLAGS", "$LDFLAGS -lstdc++"}
+     ]},
+
+     {pre_hooks, [{compile, "c_src/build_deps.sh"}]},
+     {post_hooks, [{clean, "c_src/build_deps.sh clean"}]}
+    ].
+
+Rebar2ExclusiveOpts =
+    [{qc_opts, [{qc_mod, triq}]}].
+
+Rebar3ExclusiveOpts =
+    [
+     {plugins, [pc]},
+     {artifacts, ["priv/re2_nif.so"]},
+     {provider_hooks,
+      [
+       {pre,
+        [
+         {compile, {pc, compile}},
+         {clean, {pc, clean}}
+        ]
+       }
+      ]
+     }
+    ].
+
+C =
+case erlang:function_exported(rebar3, main, 1) of
+   true -> % rebar3
+       CommonOpts ++ Rebar3ExclusiveOpts;
+   false -> % rebar 2.x or older
+       CommonOpts ++ Rebar2ExclusiveOpts
+end.
+
+io:format("~p~n", [C]).
+
+C.
