@@ -1,6 +1,21 @@
 %% -*- mode: erlang;erlang-indent-level: 4;indent-tabs-mode: nil -*-
 %% ex: ts=4 sw=4 ft=erlang et
 
+%% If library matching wildcard can be found in common lib dirs, return Opt1,
+%% otherwise Opt2.
+FindLibByWC = fun(RawWC, Opt1, Opt2) ->
+                      WC = "{lib,lib64}/" ++ RawWC,
+                      case filelib:wildcard(WC, "/")
+                           ++ filelib:wildcard(WC, "/usr")
+                      of
+                          [] -> Opt2;
+                          _ -> Opt1
+                      end
+              end.
+
+%% If "c++ --version" identifies itself as clang, and there is libc++, use
+%% that, otherwise default to libstdc++.
+
 IsClang = fun() ->
                   Vsn = os:cmd("c++ --version"),
                   case re:run(Vsn, "clang", [{capture, none}]) of
@@ -13,13 +28,7 @@ LibCPP = "c++".
 LibStdCPP = "stdc++".
 
 MaybeUseLibCPP = fun() ->
-                         WC = "{lib,lib64}/libc++*.so",
-                         case filelib:wildcard(WC, "/")
-                              ++ filelib:wildcard(WC, "/usr")
-                         of
-                             [] -> LibStdCPP;
-                             _ -> LibCPP
-                         end
+                         FindLibByWC("libc++*.so", LibCPP, LibStdCPP)
                  end.
 
 WhichCPPLib = fun() ->
@@ -31,21 +40,67 @@ WhichCPPLib = fun() ->
                       end
               end.
 
-CPPLibLDFlags = "$LDFLAGS -l" ++ WhichCPPLib().
+LDFLAGS = {"(linux|freebsd|solaris)",
+            "LDFLAGS", "$LDFLAGS -l" ++ WhichCPPLib()}.
 
-CommonOpts =
-    [
-     {port_specs, [{"priv/re2_nif.so",["c_src/re2_nif.cpp"]}]},
-     {port_env,
-     [
-      {"DRV_CFLAGS",  "$DRV_CFLAGS -O3 -Wall -Wextra -I c_src/re2"},
-      {"DRV_LDFLAGS", "$DRV_LDFLAGS c_src/re2/obj/libre2.a"},
-      {"(linux|freebsd|solaris)", "LDFLAGS", CPPLibLDFlags}
-     ]},
+FindRe2 = fun() ->
+                     Sys = {sys, "-lre2"},
+                     Local = {local, "c_src/re2/obj/libre2.a"},
+                     %% If there is libre2.so in /lib,lib64,/usr/lib, or
+                     %% /usr/lib64, use it, otherwise enable fetching and
+                     %% building of a local re2 copy.
+                     Lib = FindLibByWC("libre2*.so", Sys, Local),
+                     Header = filelib:wildcard("re2.h", "/usr/include/re2"),
+                     case {Header, Lib} of
+                         %% re2.h not found, and even though libre2 might
+                         %% exist, we need the headers. Therefore, fall back to
+                         %% local re2.
+                         {[], _} -> Local;
 
-     {pre_hooks, [{compile, "c_src/build_deps.sh"}]},
-     {post_hooks, [{clean, "c_src/build_deps.sh clean"}]}
-    ].
+                         %% If re2.h is found, but there is no libre2.so, which
+                         %% should never be the case, fall back to local re2.
+                         {[_Re2Header|_], {local, _}} -> Local;
+
+                         %% If re2.h _and_ libre2.so are found, we can use
+                         %% system re2.
+                         {[_Re2Header|_], {sys, _}} -> Sys
+                     end
+          end.
+
+CommonOpts = fun() ->
+                     PortSpecs = {port_specs,
+                                  [
+                                   {"priv/re2_nif.so", ["c_src/re2_nif.cpp"]}
+                                  ]},
+                     BaseCFLAGS = "$DRV_CFLAGS -O3 -Wall -Wextra ",
+                     case FindRe2() of
+                         {sys, Lib} ->
+                             [
+                              PortSpecs,
+                              {port_env,
+                               [
+                                {"DRV_CFLAGS",  BaseCFLAGS},
+                                {"DRV_LDFLAGS", "$DRV_LDFLAGS " ++ Lib},
+                                LDFLAGS
+                               ]}
+                             ];
+                         {local, Lib} ->
+                             [
+                              PortSpecs,
+                              {port_env,
+                               [
+                                {"DRV_CFLAGS",  BaseCFLAGS ++ "-I c_src/re2"},
+                                {"DRV_LDFLAGS", "$DRV_LDFLAGS " ++ Lib},
+                                LDFLAGS
+                               ]},
+                              %% We need to fetch and build re2 locally,
+                              %% because it couldn't be found in the system.
+                              {pre_hooks, [{compile, "c_src/build_deps.sh"}]},
+                              {post_hooks, [{clean,
+                                             "c_src/build_deps.sh clean"}]}
+                             ]
+                     end
+             end.
 
 Rebar2ExclusiveOpts =
     [{qc_opts, [{qc_mod, triq}]}].
@@ -69,9 +124,9 @@ Rebar3ExclusiveOpts =
 C =
 case erlang:function_exported(rebar3, main, 1) of
    true -> % rebar3
-       CommonOpts ++ Rebar3ExclusiveOpts;
+       CommonOpts() ++ Rebar3ExclusiveOpts;
    false -> % rebar 2.x or older
-       CommonOpts ++ Rebar2ExclusiveOpts
+       CommonOpts() ++ Rebar2ExclusiveOpts
 end.
 
 io:format("~p~n", [C]).
