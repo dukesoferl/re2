@@ -45,8 +45,12 @@ LDFLAGS = {"(linux|freebsd|solaris)",
 
 FindRe2 = fun(Sys, Local) ->
                   %% If there is libre2.so in /lib,lib64,/usr/lib, or
-                  %% /usr/lib64, use it, otherwise enable fetching and
-                  %% building of a local re2 copy.
+                  %% /usr/lib64, use it, otherwise enable fetching and building
+                  %% of a local re2 copy.
+                  %% We could try to test compile a simple program which makes
+                  %% use of re2, but that would needlessly complicate the build
+                  %% process due to the requirement of caching configure
+                  %% results.
                   Lib = FindLibByWC("libre2*.so", Sys, Local),
                   Header = filelib:wildcard("re2.h", "/usr/include/re2"),
                   case {Header, Lib} of
