@@ -43,29 +43,40 @@ WhichCPPLib = fun() ->
 LDFLAGS = {"(linux|freebsd|solaris)",
             "LDFLAGS", "$LDFLAGS -l" ++ WhichCPPLib()}.
 
-FindRe2 = fun() ->
-                     Sys = {sys, "-lre2"},
-                     Local = {local, "c_src/re2/obj/libre2.a"},
-                     %% If there is libre2.so in /lib,lib64,/usr/lib, or
-                     %% /usr/lib64, use it, otherwise enable fetching and
-                     %% building of a local re2 copy.
-                     Lib = FindLibByWC("libre2*.so", Sys, Local),
-                     Header = filelib:wildcard("re2.h", "/usr/include/re2"),
-                     case {Header, Lib} of
-                         %% re2.h not found, and even though libre2 might
-                         %% exist, we need the headers. Therefore, fall back to
-                         %% local re2.
-                         {[], _} -> Local;
+FindRe2 = fun(Sys, Local) ->
+                  %% If there is libre2.so in /lib,lib64,/usr/lib, or
+                  %% /usr/lib64, use it, otherwise enable fetching and
+                  %% building of a local re2 copy.
+                  Lib = FindLibByWC("libre2*.so", Sys, Local),
+                  Header = filelib:wildcard("re2.h", "/usr/include/re2"),
+                  case {Header, Lib} of
+                      %% re2.h not found, and even though libre2 might
+                      %% exist, we need the headers. Therefore, fall back to
+                      %% local re2.
+                      {[], _} -> Local;
 
-                         %% If re2.h is found, but there is no libre2.so, which
-                         %% should never be the case, fall back to local re2.
-                         {[_Re2Header|_], {local, _}} -> Local;
+                      %% If re2.h is found, but there is no libre2.so, which
+                      %% should never be the case, fall back to local re2.
+                      {[_Re2Header|_], {local, _}} -> Local;
 
-                         %% If re2.h _and_ libre2.so are found, we can use
-                         %% system re2.
-                         {[_Re2Header|_], {sys, _}} -> Sys
-                     end
+                      %% If re2.h _and_ libre2.so are found, we can use
+                      %% system re2.
+                      {[_Re2Header|_], {sys, _}} -> Sys
+                  end
           end.
+
+WhichRe2 = fun() ->
+                   Sys = {sys, "-lre2"},
+                   Local = {local, "c_src/re2/obj/libre2.a"},
+                   %% If env var NO_SYSTEM_RE2 is set, skip check and use
+                   %% local re2, regardless of existence of system re2.
+                   case os:getenv("NO_SYSTEM_RE2") of
+                       false ->
+                           FindRe2(Sys, Local);
+                       _ ->
+                           Local
+                   end
+           end.
 
 CommonOpts = fun() ->
                      PortSpecs = {port_specs,
@@ -73,7 +84,7 @@ CommonOpts = fun() ->
                                    {"priv/re2_nif.so", ["c_src/re2_nif.cpp"]}
                                   ]},
                      BaseCFLAGS = "$DRV_CFLAGS -O3 -Wall -Wextra ",
-                     case FindRe2() of
+                     case WhichRe2() of
                          {sys, Lib} ->
                              [
                               PortSpecs,
