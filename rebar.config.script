@@ -121,14 +121,21 @@ Rebar3ExclusiveOpts =
      }
     ].
 
-C =
-case erlang:function_exported(rebar3, main, 1) of
-   true -> % rebar3
-       CommonOpts() ++ Rebar3ExclusiveOpts;
-   false -> % rebar 2.x or older
-       CommonOpts() ++ Rebar2ExclusiveOpts
+Config = fun() ->
+                 case erlang:function_exported(rebar3, main, 1) of
+                     true -> % rebar3
+                         CommonOpts() ++ Rebar3ExclusiveOpts;
+                     false -> % rebar 2.x or older
+                         CommonOpts() ++ Rebar2ExclusiveOpts
+                 end
+         end.
+
+%% If env var DEBUG_CONFIG is set, log config term.
+case os:getenv("DEBUG_CONFIG") of
+    false ->
+        Config();
+    _ ->
+        C = Config(),
+        io:format("rebar config:~n~p~n", [C]),
+        C
 end.
-
-io:format("~p~n", [C]).
-
-C.
