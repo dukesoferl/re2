@@ -12,7 +12,11 @@ case "$1" in
   *)
     test -f re2/obj/libre2.a && exit 0
 
-    RE2_REV=2016-03-01
+    if [ "x$RE2_MASTER" != "x" ]; then
+        RE2_REV=master
+    else
+        RE2_REV=2016-03-01
+    fi
     (test -d re2 ||
         git clone https://code.googlesource.com/re2 &&
         cd re2 &&
