@@ -75,7 +75,7 @@ FindRe2 = fun(SysLib, LocalLib) ->
                   %% use of re2, but that would needlessly complicate the build
                   %% process due to the requirement of caching configure
                   %% results.
-                  Lib = FindLibByWC("libre2*.so", SysLib, LocalLib),
+                  Lib = FindLibByWC("libre2.so", SysLib, LocalLib),
                   IncDir = Re2IncDir(),
                   case {IncDir, Lib} of
                       %% re2.h not found, and even though libre2 might
