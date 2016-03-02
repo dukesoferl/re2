@@ -103,13 +103,19 @@ FindRe2 = fun(SysLib, LocalLib) ->
 WhichRe2 = fun() ->
                    SysRe2Lib = {sys, "-lre2"},
                    LocalRe2Lib = {local, "c_src/re2/obj/libre2.a"},
-                   %% If env var NO_SYSTEM_RE2 is set, skip check and use
-                   %% local re2, regardless of existence of system re2.
-                   case os:getenv("NO_SYSTEM_RE2") of
+                   %% If env var SYSTEM_RE2 is set, try to find system re2 and
+                   %% only fall back to local re2, if it cannot be found in the
+                   %% system. Ideally, the default should be the other way
+                   %% around, but it's likely this would disrupt too many
+                   %% users' environments due to the requirement of having
+                   %% libre2.so available. Eventually, the default should be
+                   %% changed to give an option to skip detection of a system
+                   %% re2.
+                   case os:getenv("SYSTEM_RE2") of
                        false ->
-                           FindRe2(SysRe2Lib, LocalRe2Lib);
+                           {LocalIncDir, LocalRe2Lib};
                        _ ->
-                           {LocalIncDir, LocalRe2Lib}
+                           FindRe2(SysRe2Lib, LocalRe2Lib)
                    end
            end.
 

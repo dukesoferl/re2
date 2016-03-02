@@ -13,8 +13,10 @@ To build, execute `make` or `rebar compile`.
 
 If re2 is found on the system, it will be used. Otherwise, the
 [re2](https://github.com/google/re2) dependency is automatically downloaded to
-`c_src/re2` by the build script.  If you want to ignore the system re2 and use
-a local copy, you can set the env var `NO_SYSTEM_RE2`.
+`c_src/re2` by the build script.  If you prefer to link against re2 as found on
+the system, you can set the env var `SYSTEM_RE2`. If you set `SYSTEM_RE2` and
+the library can not be found, it will fall back to a local copy, as if you
+didn't use the env var.
 
 Unless otherwise noted, the [re2](https://github.com/google/re2) source files
 are distributed under the  BSD-style license found in `c_src/re2/LICENSE`.
