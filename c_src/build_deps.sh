@@ -28,6 +28,6 @@ case "$1" in
     CXX="${CXX:-c++} -m$ERLANG_ARCH"
     which gmake 1>/dev/null 2>/dev/null && MAKE=gmake
     MAKE=${MAKE:-make}
-    (cd re2 && $MAKE -j2 CXX="$CXX" CXXFLAGS="$CXXFLAGS")
+    (cd re2 && $MAKE obj/libre2.a -j2 CXX="$CXX" CXXFLAGS="$CXXFLAGS")
     ;;
 esac
