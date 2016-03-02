@@ -8,3 +8,5 @@
 /ebin/*.beam
 /priv
 /support/rebar
+/_build
+/rebar.lock
