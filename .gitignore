@@ -10,3 +10,4 @@
 /support/rebar
 /_build
 /rebar.lock
+/*.html
