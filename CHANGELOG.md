@@ -12,6 +12,7 @@ Noteworthy changes to this project will be documented in this file.
 - Allow linking against system libre2, if env var SYTEM_RE2 is set,
   and fall back to local re2 if not found.
 - Allow overriding pinned re2 upstream git revision via RE2_REV env var.
+- Implement rebar3 support.
 
 ## 1.3.1 - 2016-02-11
 ### Changed
