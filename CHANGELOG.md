@@ -1,6 +1,13 @@
 # Change Log
 Noteworthy changes to this project will be documented in this file.
 
+## 1.4.1 - 2016-07-12
+### Fixed
+- Consider libre2.dylib when looking for system re2.
+
+### Changed
+- Switch default upstream re2 to 2016-06-01.
+
 ## 1.4.0 - 2016-03-14
 ### Fixed
 - Link against libc++ when appropriate.
