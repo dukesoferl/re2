@@ -15,7 +15,7 @@ case "$1" in
     if [ "x$RE2_MASTER" != "x" ]; then
         RE2_REV=master
     else
-        RE2_REV=2016-03-01
+        RE2_REV=2016-06-01
     fi
     (test -d re2 ||
         git clone https://code.googlesource.com/re2 &&
