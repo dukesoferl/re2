@@ -205,6 +205,6 @@ case os:getenv("DEBUG_CONFIG") of
         Config();
     _ ->
         C = Config(),
-        io:format("rebar config:~n~p~n", [C]),
+        io:format(standard_error, "rebar config:~n~p~n", [C]),
         C
 end.
