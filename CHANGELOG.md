@@ -1,6 +1,11 @@
 # Change Log
 Noteworthy changes to this project will be documented in this file.
 
+## 1.?.? - 2016-??-??
+### Fixed
+- Fix rebar3 hooks and make building with rebar3 reliable. Requires
+  pc (port_compiler) plugin >=1.3.
+
 ## 1.4.1 - 2016-07-12
 ### Fixed
 - Consider libre2.dylib when looking for system re2.
