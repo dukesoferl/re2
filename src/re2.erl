@@ -8,17 +8,17 @@
 -module(re2).
 -author(tuncerayaz).
 
--export([compile/1,
-         compile/2,
-         match/2,
-         match/3,
-         replace/3,
-         replace/4]).
+-export([ compile/1
+        , compile/2
+        , match/2
+        , match/3
+        , replace/3
+        , replace/4
+        ]).
 
--export_type([
-              compile_option/0,
-              match_option/0,
-              replace_option/0
+-export_type([ compile_option/0
+             , match_option/0
+             , replace_option/0
              ]).
 
 -on_load(load_nif/0).
