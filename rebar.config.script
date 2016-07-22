@@ -136,20 +136,20 @@ WhichRe2 = fun() ->
 
 IsRebar3 = erlang:function_exported(rebar3, main, 1),
 
-GetHooks = fun() ->
-                   case IsRebar3 of
-                       true ->
-                           [ {pre_hooks,
-                              [{{pc, compile}, "c_src/build_deps.sh"}]}
-                           , {post_hooks,
-                              [{{pc, clean}, "c_src/build_deps.sh clean"}]}
-                           ];
-                       false ->
-                           [ {pre_hooks, [{compile, "c_src/build_deps.sh"}]}
-                           , {post_hooks, [{clean, "c_src/build_deps.sh clean"}]}
-                           ]
-                   end
-           end,
+Hooks = fun() ->
+                case IsRebar3 of
+                    true ->
+                        [ {pre_hooks,
+                           [{{pc, compile}, "c_src/build_deps.sh"}]}
+                        , {post_hooks,
+                           [{{pc, clean}, "c_src/build_deps.sh clean"}]}
+                        ];
+                    false ->
+                        [ {pre_hooks, [{compile, "c_src/build_deps.sh"}]}
+                        , {post_hooks, [{clean, "c_src/build_deps.sh clean"}]}
+                        ]
+                end
+        end,
 
 CommonOpts = fun() ->
                      PortSpecs = {port_specs,
@@ -179,7 +179,7 @@ CommonOpts = fun() ->
                                     , LDFLAGS
                                     ]}
                                  ],
-                             PortCompilerSettings ++ GetHooks()
+                             PortCompilerSettings ++ Hooks()
                      end
              end.
 
