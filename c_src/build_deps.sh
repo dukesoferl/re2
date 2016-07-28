@@ -12,22 +12,18 @@ case "$1" in
   *)
     test -f re2/obj/libre2.a && exit 0
 
-    if [ "x$RE2_MASTER" != "x" ]; then
-        RE2_REV=master
-    else
-        RE2_REV=2016-06-01
-    fi
-    (test -d re2 ||
-        git clone https://code.googlesource.com/re2 &&
-        cd re2 &&
-        git checkout $RE2_REV)
+    RE2_REV=${RE2_REV:-2016-06-01}
+    test -d re2 || git clone https://code.googlesource.com/re2
+    (cd re2 && git fetch --all && git checkout $RE2_REV)
 
     # -std=c++11 is enabled because re2 makes use of C++11 features. The NIF
-    # code does not and is still classic C++.
+    # code does not and is C++03.
     CXXFLAGS="-Wall -O3 -fPIC -pthread -std=c++11 -m$ERLANG_ARCH"
     CXX="${CXX:-c++} -m$ERLANG_ARCH"
     which gmake 1>/dev/null 2>/dev/null && MAKE=gmake
     MAKE=${MAKE:-make}
-    (cd re2 && $MAKE obj/libre2.a -j2 CXX="$CXX" CXXFLAGS="$CXXFLAGS")
+    MAKEFLAGS=${MAKEFLAGS:--j2}
+    export MAKEFLAGS
+    (cd re2 && $MAKE obj/libre2.a CXX="$CXX" CXXFLAGS="$CXXFLAGS")
     ;;
 esac
