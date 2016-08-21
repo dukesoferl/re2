@@ -370,7 +370,7 @@ static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
                                         int n)
 {
     std::vector<ERL_NIF_TERM> vec;
-    const std::map<std::string, int>& nmap = re->NamedCapturingGroups();
+    const auto &nmap = re->NamedCapturingGroups();
     ERL_NIF_TERM VL,VH,VT;
 
     // empty StringPiece for unfound ValueIds
@@ -410,8 +410,7 @@ static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
                 return error(env, a_err_enif_alloc);
 
             if (enif_get_atom(env, VH, a_id, atom_len, ERL_NIF_LATIN1) > 0) {
-                std::map<std::string, int>::const_iterator it =
-                    nmap.find(a_id);
+                auto it = nmap.find(a_id);
 
                 ERL_NIF_TERM res;
                 if (it != nmap.end())
@@ -444,8 +443,7 @@ static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
             if (enif_get_string(env, VH, str_id, str_len,
                                 ERL_NIF_LATIN1) > 0)
             {
-                std::map<std::string, int>::const_iterator it =
-                    nmap.find(str_id);
+                auto it = nmap.find(str_id);
 
                 ERL_NIF_TERM res;
                 if (it != nmap.end())
