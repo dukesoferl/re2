@@ -37,10 +37,10 @@ namespace {
     class autohandle {
     private: bool keep_; T* ptr_;
     public:
-        autohandle():keep_(false),ptr_(NULL){}
+        autohandle():keep_(false),ptr_(nullptr){}
         autohandle(T* ptr,bool keep=false):keep_(keep), ptr_(ptr){}
         void set(T* ptr,bool keep=false) { ptr_=ptr; keep_=keep; }
-        ~autohandle() { if (!keep_) { enif_free(ptr_); ptr_=NULL; } }
+        ~autohandle() { if (!keep_) { enif_free(ptr_); ptr_=nullptr; } }
         T* operator->() const { return ptr_; }
         T* operator&() const { return ptr_; }
     };
@@ -119,12 +119,12 @@ extern "C" {
     static int on_load(ErlNifEnv* env, void** priv_data,
                        ERL_NIF_TERM load_info);
 
-    ERL_NIF_INIT(re2, nif_funcs, &on_load, NULL, NULL, NULL)
+    ERL_NIF_INIT(re2, nif_funcs, &on_load, nullptr, nullptr, nullptr)
 } // extern "C"
 
 
 // static variables
-static ErlNifResourceType* re2_resource_type = NULL;
+static ErlNifResourceType* re2_resource_type = nullptr;
 static ERL_NIF_TERM a_ok;
 static ERL_NIF_TERM a_error;
 static ERL_NIF_TERM a_match;
@@ -165,11 +165,11 @@ static int on_load(ErlNifEnv* env, void**, ERL_NIF_TERM)
 {
     ErlNifResourceFlags flags =
         (ErlNifResourceFlags)(ERL_NIF_RT_CREATE | ERL_NIF_RT_TAKEOVER);
-    ErlNifResourceType* rt = enif_open_resource_type(env, NULL,
+    ErlNifResourceType* rt = enif_open_resource_type(env, nullptr,
                                                      "re2_resource",
                                                      &re2_resource_cleanup,
-                                                     flags, NULL);
-    if (rt == NULL)
+                                                     flags, nullptr);
+    if (rt == nullptr)
         return -1;
 
     re2_resource_type = rt;
@@ -181,11 +181,11 @@ static int on_load(ErlNifEnv* env, void**, ERL_NIF_TERM)
 
 static void cleanup_handle(re2_handle* handle)
 {
-    if (handle->re != NULL)
+    if (handle->re != nullptr)
     {
         handle->re->~RE2();
         enif_free(handle->re);
-        handle->re = NULL;
+        handle->re = nullptr;
     }
 }
 
@@ -206,7 +206,7 @@ static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
         const re2::StringPiece p((const char*)pdata.data, pdata.size);
         re2_handle* handle = (re2_handle*)enif_alloc_resource(
             re2_resource_type, sizeof(re2_handle));
-        handle->re = NULL;
+        handle->re = nullptr;
 
         re2::RE2::Options re2opts;
         re2opts.set_log_errors(false);
@@ -219,7 +219,7 @@ static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
         }
 
         re2::RE2 *re2 = (re2::RE2*)enif_alloc(sizeof(re2::RE2));
-        if (re2 == NULL)
+        if (re2 == nullptr)
         {
             cleanup_handle(handle);
             enif_release_resource(handle);
@@ -261,7 +261,7 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
             return enif_make_badarg(env);
 
         if (enif_get_resource(env, argv[1], re2_resource_type, &handle.vp)
-            && handle.p->re != NULL)
+            && handle.p->re != nullptr)
         {
             re.set(handle.p->re, true);
 
@@ -276,7 +276,7 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
             if (opts.caseless)
                 re2opts.set_case_sensitive(false);
             re2::RE2* re2 = (re2::RE2*)enif_alloc(sizeof(re2::RE2));
-            if (re2 == NULL)
+            if (re2 == nullptr)
                 return error(env, a_err_enif_alloc);
             re.set(new (re2) re2::RE2(p, re2opts)); // placement new
         }
@@ -406,7 +406,7 @@ static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
 
             unsigned atom_len;
             char *a_id = alloc_atom(env, VH, &atom_len);
-            if (a_id == NULL)
+            if (a_id == nullptr)
                 return error(env, a_err_enif_alloc);
 
             if (enif_get_atom(env, VH, a_id, atom_len, ERL_NIF_LATIN1) > 0) {
@@ -438,7 +438,7 @@ static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
 
             unsigned str_len;
             char *str_id = alloc_str(env, VH, &str_len);
-            if (str_id == NULL)
+            if (str_id == nullptr)
                 return error(env, a_err_enif_alloc);
 
             if (enif_get_string(env, VH, str_id, str_len,
@@ -487,7 +487,7 @@ static ERL_NIF_TERM re2_replace(ErlNifEnv* env, int argc,
         ErlNifBinary pdata;
 
         if (enif_get_resource(env, argv[1], re2_resource_type, &handle.vp)
-            && handle.p->re != NULL)
+            && handle.p->re != nullptr)
         {
             re.set(handle.p->re, true);
         }
@@ -497,7 +497,7 @@ static ERL_NIF_TERM re2_replace(ErlNifEnv* env, int argc,
             re2::RE2::Options re2opts;
             re2opts.set_log_errors(false);
             re2::RE2* re2 = (re2::RE2*)enif_alloc(sizeof(re2::RE2));
-            if (re2 == NULL)
+            if (re2 == nullptr)
                 return error(env, a_err_enif_alloc);
             re.set(new (re2) re2::RE2(p, re2opts)); // placement new
         }
@@ -876,7 +876,7 @@ static char* alloc_atom(ErlNifEnv* env, const ERL_NIF_TERM atom, unsigned* len)
 {
     unsigned atom_len;
     if (!enif_get_atom_length(env, atom, &atom_len, ERL_NIF_LATIN1))
-        return NULL;
+        return nullptr;
     atom_len++;
     *len = atom_len;
     return (char*)enif_alloc(atom_len);
@@ -886,7 +886,7 @@ static char* alloc_str(ErlNifEnv* env, const ERL_NIF_TERM list, unsigned* len)
 {
     unsigned list_len;
     if (!enif_get_list_length(env, list, &list_len))
-        return NULL;
+        return nullptr;
     list_len++;
     *len = list_len;
     return (char*)enif_alloc(list_len);
