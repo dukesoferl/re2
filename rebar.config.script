@@ -197,21 +197,33 @@ Rebar3ExclusiveOpts = fun() ->
                               ]
                       end.
 
-Config = fun() ->
-                 case IsRebar3 of
-                     true ->
-                         CommonOpts() ++ Rebar3ExclusiveOpts();
+Config0 = case IsRebar3 of
+              true ->
+                  CommonOpts() ++ Rebar3ExclusiveOpts();
+              false ->
+                  CommonOpts() ++ Rebar2ExclusiveOpts()
+          end.
+
+TriqDep = [{triq, ".*", {git, "https://github.com/triqng/triq"}}].
+Config = case os:getenv("RE2_TEST_DEPS") of
+             false ->
+                 Config0;
+             _ ->
+                 case lists:keysearch(deps, 1, Config0) of
+                     {value, {deps, Deps}} ->
+                         NDeps = Deps ++ TriqDep,
+                         lists:keyreplace(deps, 1, Config0, {deps, NDeps});
                      false ->
-                         CommonOpts() ++ Rebar2ExclusiveOpts()
+                         Config0 ++ [{deps, TriqDep}]
                  end
          end.
 
 %% If env var DEBUG_CONFIG is set, log config term.
 case os:getenv("DEBUG_CONFIG") of
     false ->
-        Config();
+        Config;
     _ ->
-        C = Config(),
+        C = Config,
         io:format(standard_error, "rebar config:~n~p~n", [C]),
         C
 end.
