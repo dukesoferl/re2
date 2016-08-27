@@ -66,8 +66,18 @@ WhichCPPLib = fun() ->
                       end
               end.
 
-LDFLAGS = {"(linux|freebsd|solaris)",
-            "LDFLAGS", "$LDFLAGS -l" ++ WhichCPPLib()}.
+%% Only look for libc++ if rebar is older than 2.6.4. If it's new
+%% enough, we can omit the extra LDFLAGS, because CXX will be used in
+%% the link command.
+{ok, Rebar2Vsn} = application:get_key(rebar, vsn).
+Rebar2FixedPortCompiler = Rebar2Vsn >= "2.6.4".
+LDFLAGS = case Rebar2FixedPortCompiler of
+              true ->
+                  [];
+              false ->
+                  [{"(linux|freebsd|solaris)",
+                    "LDFLAGS", "$LDFLAGS -l" ++ WhichCPPLib()}]
+          end.
 
 LocalIncDir = "-Ic_src/re2".
 
@@ -162,11 +172,12 @@ CommonOpts = fun() ->
                              %% Use already existing (system) re2
                              [ PortSpecs
                              , {port_env,
-                                [ {"DRV_CFLAGS",  BaseCFLAGS ++ Inc}
-                                , {"DRV_LDFLAGS",
-                                   "$DRV_LDFLAGS -L" ++ LibDir ++ " " ++ Lib}
-                                , LDFLAGS
-                                ]}
+                                LDFLAGS ++
+                                    [ {"DRV_CFLAGS",  BaseCFLAGS ++ Inc}
+                                    , {"DRV_LDFLAGS",
+                                       "$DRV_LDFLAGS -L" ++ LibDir
+                                       ++ " " ++ Lib}
+                                    ]}
                              ];
                          {Inc, {local, Lib}} ->
                              %% Use local re2, which is fetched and built by a
@@ -174,10 +185,11 @@ CommonOpts = fun() ->
                              PortCompilerSettings =
                                  [ PortSpecs
                                  , {port_env,
-                                    [ {"DRV_CFLAGS",  BaseCFLAGS ++ Inc}
-                                    , {"DRV_LDFLAGS", "$DRV_LDFLAGS " ++ Lib}
-                                    , LDFLAGS
-                                    ]}
+                                    LDFLAGS ++
+                                        [ {"DRV_CFLAGS",  BaseCFLAGS ++ Inc}
+                                        , {"DRV_LDFLAGS",
+                                           "$DRV_LDFLAGS " ++ Lib}
+                                        ]}
                                  ],
                              PortCompilerSettings ++ Hooks()
                      end
