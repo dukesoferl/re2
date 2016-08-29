@@ -1,10 +1,25 @@
 # Change Log
 Noteworthy changes to this project will be documented in this file.
 
-## 1.?.? - 2016-??-??
+## 1.5.0 - 2016-08-29
 ### Fixed
-- Fix rebar3 hooks and make building with rebar3 reliable. Requires
-  pc (port_compiler) plugin >=1.3.
+- build: fix rebar3 hooks and make building with rebar3 reliable. Requires pc
+  (port_compiler) plugin >=1.3.
+
+### Changed
+- build: adapt port env to fixed rebar port compiler plugin, which now
+  correctly uses CXX to link and not CC. That means, we don't explicitly pass
+  -lc++ or -lstdc++ anymore because the link command does the right thing for
+  C++ now. This worked in the past, but with the introduction of C++11 due to
+  upstream, and the need for a newer toolchain, this started to affect certain
+  environments like CentOS. Using CXX as the compile driver is the correct
+  thing to do, and it fixes the CentOS issue. This was fixed in rebar 2.6.3,
+  but because it works correctly for almost everywhere but environments like
+  CentOS, rebar.config.script supports older rebar versions as well.
+- build: allow upstream re2 git rev override via RE2_REV env var.
+- build: instead of hard-coding -j2, use MAKEFLAGS and of course respect it if
+  already set.
+- Add GitLab CI config.
 
 ## 1.4.1 - 2016-07-12
 ### Fixed
