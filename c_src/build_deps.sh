@@ -22,6 +22,6 @@ case "$1" in
     MAKE=${MAKE:-make}
     MAKEFLAGS=${MAKEFLAGS:--j2}
     export MAKEFLAGS
-    (cd re2 && $MAKE obj/libre2.a CXX="$CXX" CXXFLAGS="$CXXFLAGS")
+    ($MAKE -C re2 obj/libre2.a CXX="$CXX" CXXFLAGS="$CXXFLAGS")
     ;;
 esac
