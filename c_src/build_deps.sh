@@ -16,8 +16,6 @@ case "$1" in
     test -d re2 || git clone https://code.googlesource.com/re2
     (cd re2 && git fetch --all && git checkout $RE2_REV)
 
-    # -std=c++11 is enabled because re2 makes use of C++11 features. The NIF
-    # code does not and is C++03.
     CXXFLAGS="-Wall -O3 -fPIC -pthread -std=c++11 -m$ERLANG_ARCH"
     CXX="${CXX:-c++} -m$ERLANG_ARCH"
     which gmake 1>/dev/null 2>/dev/null && MAKE=gmake
