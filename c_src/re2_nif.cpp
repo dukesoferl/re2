@@ -33,14 +33,37 @@ namespace {
         replaceoptions():global(false) {}
     };
 
+    // TODO: We now depend on C++11 due to RE2 upstream, so if RE2's
+    // constructor allows such use, reconsider replacing this with unique_ptr
+    // or shared_ptr from C++11.
     template <typename T>
     class autohandle {
-    private: bool keep_; T* ptr_;
+    private:
+        bool keep_;
+        T* ptr_;
+
     public:
-        autohandle():keep_(false),ptr_(nullptr){}
-        autohandle(T* ptr,bool keep=false):keep_(keep), ptr_(ptr){}
-        void set(T* ptr,bool keep=false) { ptr_=ptr; keep_=keep; }
-        ~autohandle() { if (!keep_) { enif_free(ptr_); ptr_=nullptr; } }
+        autohandle()
+            : keep_(false)
+            , ptr_(nullptr)
+        {}
+        autohandle(T* ptr, bool keep = false)
+            : keep_(keep)
+            , ptr_(ptr)
+        {}
+        void set(T* ptr, bool keep = false)
+        {
+            ptr_ = ptr;
+            keep_ = keep;
+        }
+        ~autohandle()
+        {
+            if (!keep_ && ptr_ != nullptr) {
+                ptr_->~T();
+                enif_free(ptr_);
+                ptr_ = nullptr;
+            }
+        }
         T* operator->() const { return ptr_; }
         T* operator&() const { return ptr_; }
     };
@@ -141,6 +164,7 @@ static ERL_NIF_TERM a_binary;
 static ERL_NIF_TERM a_caseless;
 static ERL_NIF_TERM a_max_mem;
 static ERL_NIF_TERM a_err_alloc_binary;
+static ERL_NIF_TERM a_err_alloc_resource;
 static ERL_NIF_TERM a_err_enif_alloc;
 static ERL_NIF_TERM a_err_get_atom;
 static ERL_NIF_TERM a_err_get_string;
@@ -206,6 +230,11 @@ static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
         const re2::StringPiece p((const char*)pdata.data, pdata.size);
         re2_handle* handle = (re2_handle*)enif_alloc_resource(
             re2_resource_type, sizeof(re2_handle));
+
+        if (handle == nullptr) {
+            return error(env, a_err_alloc_resource);
+        }
+
         handle->re = nullptr;
 
         re2::RE2::Options re2opts;
@@ -562,6 +591,7 @@ static void init_atoms(ErlNifEnv* env)
     a_caseless                   = enif_make_atom(env, "caseless");
     a_max_mem                    = enif_make_atom(env, "max_mem");
     a_err_alloc_binary           = enif_make_atom(env, "alloc_binary");
+    a_err_alloc_resource         = enif_make_atom(env, "alloc_resource");
     a_err_enif_alloc             = enif_make_atom(env, "enif_alloc");
     a_err_get_atom               = enif_make_atom(env, "enif_get_atom");
     a_err_get_string             = enif_make_atom(env, "enif_get_string");

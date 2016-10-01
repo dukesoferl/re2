@@ -1,6 +1,12 @@
 # Change Log
 Noteworthy changes to this project will be documented in this file.
 
+## 1.6.0 - 2016-10-??
+### Fixed
+
+- Fix memory leak with literal regexes. Thanks to reports by Mark Peng, Mathieu
+  D'Amours and bkolodziej.
+
 ## 1.5.0 - 2016-08-29
 ### Fixed
 - build: fix rebar3 hooks and make building with rebar3 reliable. Requires pc
