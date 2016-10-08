@@ -1,7 +1,7 @@
 # Change Log
 Noteworthy changes to this project will be documented in this file.
 
-## 1.6.0 - 2016-10-??
+## 1.6.0 - 2016-10-08
 ### Fixed
 
 - Fix memory leak with literal regexes. Thanks to reports by Mark Peng, Mathieu
