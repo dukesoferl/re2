@@ -33,14 +33,37 @@ namespace {
         replaceoptions():global(false) {}
     };
 
+    // TODO: We now depend on C++11 due to RE2 upstream, so if RE2's
+    // constructor allows such use, reconsider replacing this with unique_ptr
+    // or shared_ptr from C++11.
     template <typename T>
     class autohandle {
-    private: bool keep_; T* ptr_;
+    private:
+        bool keep_;
+        T* ptr_;
+
     public:
-        autohandle():keep_(false),ptr_(nullptr){}
-        autohandle(T* ptr,bool keep=false):keep_(keep), ptr_(ptr){}
-        void set(T* ptr,bool keep=false) { ptr_=ptr; keep_=keep; }
-        ~autohandle() { if (!keep_) { enif_free(ptr_); ptr_=nullptr; } }
+        autohandle()
+            : keep_(false)
+            , ptr_(nullptr)
+        {}
+        autohandle(T* ptr, bool keep = false)
+            : keep_(keep)
+            , ptr_(ptr)
+        {}
+        void set(T* ptr, bool keep = false)
+        {
+            ptr_ = ptr;
+            keep_ = keep;
+        }
+        ~autohandle()
+        {
+            if (!keep_ && ptr_ != nullptr) {
+                ptr_->~T();
+                enif_free(ptr_);
+                ptr_ = nullptr;
+            }
+        }
         T* operator->() const { return ptr_; }
         T* operator&() const { return ptr_; }
     };
@@ -140,10 +163,11 @@ static ERL_NIF_TERM a_index;
 static ERL_NIF_TERM a_binary;
 static ERL_NIF_TERM a_caseless;
 static ERL_NIF_TERM a_max_mem;
-static ERL_NIF_TERM a_err_alloc_binary;
+static ERL_NIF_TERM a_err_enif_alloc_binary;
+static ERL_NIF_TERM a_err_enif_alloc_resource;
 static ERL_NIF_TERM a_err_enif_alloc;
-static ERL_NIF_TERM a_err_get_atom;
-static ERL_NIF_TERM a_err_get_string;
+static ERL_NIF_TERM a_err_enif_get_atom;
+static ERL_NIF_TERM a_err_enif_get_string;
 static ERL_NIF_TERM a_re2_NoError;
 static ERL_NIF_TERM a_re2_ErrorInternal;
 static ERL_NIF_TERM a_re2_ErrorBadEscape;
@@ -206,6 +230,11 @@ static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
         const re2::StringPiece p((const char*)pdata.data, pdata.size);
         re2_handle* handle = (re2_handle*)enif_alloc_resource(
             re2_resource_type, sizeof(re2_handle));
+
+        if (handle == nullptr) {
+            return error(env, a_err_enif_alloc_resource);
+        }
+
         handle->re = nullptr;
 
         re2::RE2::Options re2opts;
@@ -310,8 +339,8 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
                 // return first match only
 
                 ERL_NIF_TERM first = mres(env, s, group[0], opts.ct);
-                if (enif_is_identical(first, a_err_alloc_binary)) {
-                    return error(env, a_err_alloc_binary);
+                if (enif_is_identical(first, a_err_enif_alloc_binary)) {
+                    return error(env, a_err_enif_alloc_binary);
                 } else {
                     return enif_make_tuple2(env, a_match,
                                             enif_make_list1(env, first));
@@ -337,9 +366,9 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
                     (ERL_NIF_TERM*)enif_alloc(sizeof(ERL_NIF_TERM)*n);
                 for(int i = start, arridx=0; i < n; i++,arridx++) {
                     ERL_NIF_TERM res = mres(env, s, group[i], opts.ct);
-                    if (enif_is_identical(res, a_err_alloc_binary)) {
+                    if (enif_is_identical(res, a_err_enif_alloc_binary)) {
                         enif_free(arr);
-                        return error(env, a_err_alloc_binary);
+                        return error(env, a_err_enif_alloc_binary);
                     } else {
                         arr[arridx] = res;
                     }
@@ -391,8 +420,8 @@ static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
                 else
                     res = mres(env, s, empty, opts.ct);
 
-                if (enif_is_identical(res, a_err_alloc_binary))
-                    return error(env, a_err_alloc_binary);
+                if (enif_is_identical(res, a_err_enif_alloc_binary))
+                    return error(env, a_err_enif_alloc_binary);
                 else
                     vec.push_back(res);
 
@@ -418,15 +447,15 @@ static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
                 else
                     res = mres(env, s, empty, opts.ct);
 
-                if (enif_is_identical(res, a_err_alloc_binary))
-                    return error(env, a_err_alloc_binary);
+                if (enif_is_identical(res, a_err_enif_alloc_binary))
+                    return error(env, a_err_enif_alloc_binary);
                 else
                     vec.push_back(res);
             }
             else
             {
                 enif_free(a_id);
-                return error(env, a_err_get_atom);
+                return error(env, a_err_enif_get_atom);
             }
 
             enif_free(a_id);
@@ -451,15 +480,15 @@ static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
                 else
                     res = mres(env, s, empty, opts.ct);
 
-                if (enif_is_identical(res, a_err_alloc_binary))
-                    return error(env, a_err_alloc_binary);
+                if (enif_is_identical(res, a_err_enif_alloc_binary))
+                    return error(env, a_err_enif_alloc_binary);
                 else
                     vec.push_back(res);
             }
             else
             {
                 enif_free(str_id);
-                return error(env, a_err_get_string);
+                return error(env, a_err_enif_get_string);
             }
 
             enif_free(str_id);
@@ -561,10 +590,11 @@ static void init_atoms(ErlNifEnv* env)
     a_binary                     = enif_make_atom(env, "binary");
     a_caseless                   = enif_make_atom(env, "caseless");
     a_max_mem                    = enif_make_atom(env, "max_mem");
-    a_err_alloc_binary           = enif_make_atom(env, "alloc_binary");
+    a_err_enif_alloc_binary      = enif_make_atom(env, "enif_alloc_binary");
+    a_err_enif_alloc_resource    = enif_make_atom(env, "enif_alloc_resource");
     a_err_enif_alloc             = enif_make_atom(env, "enif_alloc");
-    a_err_get_atom               = enif_make_atom(env, "enif_get_atom");
-    a_err_get_string             = enif_make_atom(env, "enif_get_string");
+    a_err_enif_get_atom          = enif_make_atom(env, "enif_get_atom");
+    a_err_enif_get_string        = enif_make_atom(env, "enif_get_string");
     a_re2_NoError                = enif_make_atom(env, "no_error");
     a_re2_ErrorInternal          = enif_make_atom(env, "internal");
     a_re2_ErrorBadEscape         = enif_make_atom(env, "bad_escape");
@@ -763,7 +793,7 @@ static ERL_NIF_TERM rres(ErlNifEnv* env, const std::string& s)
 {
     ErlNifBinary bsubst;
     if(!enif_alloc_binary(s.size(), &bsubst))
-        return error(env, a_err_alloc_binary);
+        return error(env, a_err_enif_alloc_binary);
     memcpy(bsubst.data, s.data(), s.size());
     return enif_make_binary(env, &bsubst);
 }
@@ -780,7 +810,7 @@ static ERL_NIF_TERM mres(ErlNifEnv* env,
     case matchoptions::CT_BINARY:
         ErlNifBinary bmatch;
         if(!enif_alloc_binary(match.size(), &bmatch))
-            return a_err_alloc_binary;
+            return a_err_enif_alloc_binary;
         memcpy(bmatch.data, match.data(), match.size());
         return enif_make_binary(env, &bmatch);
     default:

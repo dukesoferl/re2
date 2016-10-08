@@ -16,6 +16,11 @@
         , replace/4
         ]).
 
+%% Development test functions.
+-ifdef(DEV).
+-export([l/1]).
+-endif.
+
 -export_type([ compile_option/0
              , match_option/0
              , replace_option/0
@@ -100,3 +105,14 @@ replace(_,_,_) ->
               [replace_option()]) -> replace_result().
 replace(_,_,_,_) ->
     ?nif_stub.
+
+
+%% Development test functions.
+-ifdef(DEV).
+l(0) ->
+    ok;
+l(N) ->
+    {match, [<<"o">>]} = re2:match("foo", "o", [{capture, first, binary}]),
+    <<"f1o">> = re2:replace("foo", "o", "1"),
+    l(N-1).
+-endif.
