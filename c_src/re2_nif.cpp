@@ -33,9 +33,32 @@ namespace {
         replaceoptions():global(false) {}
     };
 
+    // Cleanup function for C++ object created with enif allocator via C++
+    // placement syntax which necessitates explicit invocation of the object's
+    // destructor. This is used in the NIF resource cleanup callback and in a
+    // unique_ptr's deleter.
+    template <typename T>
+    void cleanup_obj_ptr(T*& ptr)
+    {
+        if (ptr != nullptr) {
+            ptr->~T();
+            enif_free(ptr);
+            ptr = nullptr;
+        }
+    }
+
+    // Deleter for use with enif allocated C++ object owned by a unique_ptr.
+    // template <typename T>
+    // struct EnifDeleter {
+    //     void operator() (T* ptr)
+    //     {
+    //         cleanup_obj_ptr(ptr);
+    //     }
+    // };
+    // typedef std::unique_ptr<re2::RE2, EnifDeleter<re2::RE2>> Re2UniquePtr;
+
     // TODO: We now depend on C++11 due to RE2 upstream, so if RE2's
-    // constructor allows such use, reconsider replacing this with unique_ptr
-    // or shared_ptr from C++11.
+    // constructor allows such use, consider replacing this with unique_ptr.
     template <typename T>
     class autohandle {
     private:
@@ -58,10 +81,8 @@ namespace {
         }
         ~autohandle()
         {
-            if (!keep_ && ptr_ != nullptr) {
-                ptr_->~T();
-                enif_free(ptr_);
-                ptr_ = nullptr;
+            if (!keep_) {
+                cleanup_obj_ptr(ptr_);
             }
         }
         T* operator->() const { return ptr_; }
@@ -205,12 +226,7 @@ static int on_load(ErlNifEnv* env, void**, ERL_NIF_TERM)
 
 static void cleanup_handle(re2_handle* handle)
 {
-    if (handle->re != nullptr)
-    {
-        handle->re->~RE2();
-        enif_free(handle->re);
-        handle->re = nullptr;
-    }
+    cleanup_obj_ptr(handle->re);
 }
 
 static void re2_resource_cleanup(ErlNifEnv*, void* arg)
