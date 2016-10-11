@@ -7,6 +7,7 @@
 #include <re2/re2.h>
 #include <map>
 #include <vector>
+#include <memory>
 
 namespace {
     struct compileoptions {
@@ -48,46 +49,14 @@ namespace {
     }
 
     // Deleter for use with enif allocated C++ object owned by a unique_ptr.
-    // template <typename T>
-    // struct EnifDeleter {
-    //     void operator() (T* ptr)
-    //     {
-    //         cleanup_obj_ptr(ptr);
-    //     }
-    // };
-    // typedef std::unique_ptr<re2::RE2, EnifDeleter<re2::RE2>> Re2UniquePtr;
-
-    // TODO: We now depend on C++11 due to RE2 upstream, so if RE2's
-    // constructor allows such use, consider replacing this with unique_ptr.
     template <typename T>
-    class autohandle {
-    private:
-        bool keep_;
-        T* ptr_;
-
-    public:
-        autohandle()
-            : keep_(false)
-            , ptr_(nullptr)
-        {}
-        autohandle(T* ptr, bool keep = false)
-            : keep_(keep)
-            , ptr_(ptr)
-        {}
-        void set(T* ptr, bool keep = false)
+    struct EnifDeleter {
+        void operator() (T* ptr)
         {
-            ptr_ = ptr;
-            keep_ = keep;
+            cleanup_obj_ptr(ptr);
         }
-        ~autohandle()
-        {
-            if (!keep_) {
-                cleanup_obj_ptr(ptr_);
-            }
-        }
-        T* operator->() const { return ptr_; }
-        T* operator&() const { return ptr_; }
     };
+    using Re2UniquePtr = std::unique_ptr<re2::RE2, EnifDeleter<re2::RE2>>;
 }
 
 struct re2_handle {
@@ -118,7 +87,7 @@ static void parse_match_capture_options(ErlNifEnv* env, matchoptions& opts,
 static bool parse_replace_options(ErlNifEnv* env, const ERL_NIF_TERM list,
                                   replaceoptions& opts);
 static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
-                                        const autohandle<re2::RE2>& re,
+                                        const re2::RE2* const re,
                                         const re2::StringPiece& s,
                                         const matchoptions& opts,
                                         std::vector<re2::StringPiece>& group,
@@ -297,7 +266,8 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
     if (enif_inspect_iolist_as_binary(env, argv[0], &sdata))
     {
         const re2::StringPiece s((const char*)sdata.data, sdata.size);
-        autohandle<re2::RE2> re;
+        re2::RE2* re = nullptr;
+        Re2UniquePtr re_unique_ptr = nullptr;
         union re2_handle_union handle;
         ErlNifBinary pdata;
 
@@ -308,7 +278,8 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
         if (enif_get_resource(env, argv[1], re2_resource_type, &handle.vp)
             && handle.p->re != nullptr)
         {
-            re.set(handle.p->re, true);
+            // Save existing RE2 obj for use in this function
+            re = handle.p->re;
 
             if (opts.caseless) // caseless allowed either in compile or match
                 return enif_make_badarg(env);
@@ -323,7 +294,10 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
             re2::RE2* re2 = (re2::RE2*)enif_alloc(sizeof(re2::RE2));
             if (re2 == nullptr)
                 return error(env, a_err_enif_alloc);
-            re.set(new (re2) re2::RE2(p, re2opts)); // placement new
+            // Save temporary RE2 obj for use in this function
+            re = new (re2) re2::RE2(p, re2opts); // placement new
+            // Save RE2 obj ptr for cleanup via unique_ptr
+            re_unique_ptr.reset(re);
         }
         else
         {
@@ -408,7 +382,7 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
 }
 
 static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
-                                        const autohandle<re2::RE2>& re,
+                                        const re2::RE2* const re,
                                         const re2::StringPiece& s,
                                         const matchoptions& opts,
                                         std::vector<re2::StringPiece>& group,
@@ -525,14 +499,16 @@ static ERL_NIF_TERM re2_replace(ErlNifEnv* env, int argc,
     {
         std::string s((const char*)sdata.data, sdata.size);
         const re2::StringPiece r((const char*)rdata.data, rdata.size);
-        autohandle<re2::RE2> re;
+        re2::RE2* re = nullptr;
+        Re2UniquePtr re_unique_ptr = nullptr;
         union re2_handle_union handle;
         ErlNifBinary pdata;
 
         if (enif_get_resource(env, argv[1], re2_resource_type, &handle.vp)
             && handle.p->re != nullptr)
         {
-            re.set(handle.p->re, true);
+            // Save existing RE2 obj for use in this function
+            re = handle.p->re;
         }
         else if (enif_inspect_iolist_as_binary(env, argv[1], &pdata))
         {
@@ -542,7 +518,10 @@ static ERL_NIF_TERM re2_replace(ErlNifEnv* env, int argc,
             re2::RE2* re2 = (re2::RE2*)enif_alloc(sizeof(re2::RE2));
             if (re2 == nullptr)
                 return error(env, a_err_enif_alloc);
-            re.set(new (re2) re2::RE2(p, re2opts)); // placement new
+            // Save temporary RE2 obj for use in this function
+            re = new (re2) re2::RE2(p, re2opts); // placement new
+            // Save RE2 obj ptr for cleanup via unique_ptr
+            re_unique_ptr.reset(re);
         }
         else
         {
@@ -558,7 +537,7 @@ static ERL_NIF_TERM re2_replace(ErlNifEnv* env, int argc,
 
         if (opts.global)
         {
-            if (re2::RE2::GlobalReplace(&s, *(&re), r))
+            if (re2::RE2::GlobalReplace(&s, *re, r))
             {
                 return rres(env, s);
             }
@@ -569,7 +548,7 @@ static ERL_NIF_TERM re2_replace(ErlNifEnv* env, int argc,
         }
         else
         {
-            if (re2::RE2::Replace(&s, *(&re), r))
+            if (re2::RE2::Replace(&s, *re, r))
             {
                 return rres(env, s);
             }
