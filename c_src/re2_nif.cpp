@@ -9,6 +9,13 @@
 #include <vector>
 #include <memory>
 
+#ifdef DEBUG
+    #include <iostream>
+    #define DBG(M) do { std::cerr << M;  } while (false)
+#else
+    #define DBG(M) do { } while (false)
+#endif
+
 namespace {
     struct compileoptions {
         re2::RE2::Options re2opts;
@@ -104,11 +111,42 @@ static ERL_NIF_TERM rres(ErlNifEnv* env, const std::string& s);
 static char* alloc_atom(ErlNifEnv* env, const ERL_NIF_TERM atom, unsigned* len);
 static char* alloc_str(ErlNifEnv* env, const ERL_NIF_TERM list, unsigned* len);
 
-#if ERL_NIF_MAJOR_VERSION > 2                                   \
-    || (ERL_NIF_MAJOR_VERSION == 2 && ERL_NIF_MINOR_VERSION >= 7)
-#define NIF_FUNC_ENTRY(name, arity, fun) {name, arity, fun, 0}
+#if ERL_NIF_MAJOR_VERSION > 2
+#define RE2_HAVE_DIRTY_SCHEDULERS 1
+#elif ERL_NIF_MAJOR_VERSION == 2
+#if ERL_NIF_MINOR_VERSION >= 7 && ERL_NIF_MINOR_VERSION < 11
+#ifdef ERL_NIF_DIRTY_SCHEDULER_SUPPORT
+#define RE2_HAVE_DIRTY_SCHEDULERS 1
+#endif
+#elif ERL_NIF_MINOR_VERSION >= 11
+#define RE2_HAVE_DIRTY_SCHEDULERS 1
 #else
+#undef RE2_HAVE_DIRTY_SCHEDULERS
+#endif
+#endif
+
+#ifdef RE2_HAVE_DIRTY_SCHEDULERS
+
+#define NIF_FUNC_ENTRY(name, arity, fun) {name, arity, fun, 0}
+#define SCHEDULE_NIF enif_schedule_nif
+#define DS_MODE ERL_NIF_DIRTY_JOB_CPU_BOUND
+
+#else
+
 #define NIF_FUNC_ENTRY(name, arity, fun) {name, arity, fun}
+#define DS_MODE 0
+static ERL_NIF_TERM SCHEDULE_NIF(
+    ErlNifEnv* env
+    , const char* // fun_name
+    , int // flags
+    , ERL_NIF_TERM (*fp)(ErlNifEnv*
+                         , int
+                         , const ERL_NIF_TERM[])
+    , int argc
+    , const ERL_NIF_TERM argv[])
+{
+    return (*fp)(env, argc, argv);
+}
 #endif
 
 extern "C" {
@@ -139,6 +177,7 @@ extern "C" {
 
 
 // static variables
+static int ds_flags = 0;
 static ErlNifResourceType* re2_resource_type = nullptr;
 static ERL_NIF_TERM a_ok;
 static ERL_NIF_TERM a_error;
@@ -176,6 +215,13 @@ static ERL_NIF_TERM a_re2_ErrorBadUTF8;
 static ERL_NIF_TERM a_re2_ErrorBadNamedCapture;
 static ERL_NIF_TERM a_re2_ErrorPatternTooLarge;
 
+static bool have_online_dirty_schedulers()
+{
+    ErlNifSysInfo si;
+    enif_system_info(&si, sizeof(si));
+    DBG("dirty_scheduler_support: " << si.dirty_scheduler_support << "\n");
+    return si.dirty_scheduler_support != 0;
+}
 
 static int on_load(ErlNifEnv* env, void**, ERL_NIF_TERM)
 {
@@ -192,6 +238,13 @@ static int on_load(ErlNifEnv* env, void**, ERL_NIF_TERM)
 
     init_atoms(env);
 
+    if (have_online_dirty_schedulers()) {
+        DBG("dirty schedulers: online\n");
+        ds_flags = DS_MODE;
+    } else {
+        DBG("dirty schedulers: offline or unsupported\n");
+    }
+
     return 0;
 }
 
@@ -207,8 +260,8 @@ static void re2_resource_cleanup(ErlNifEnv*, void* arg)
     cleanup_handle(handle);
 }
 
-static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
-                                const ERL_NIF_TERM argv[])
+static ERL_NIF_TERM re2_compile_impl(ErlNifEnv* env, int argc,
+                                     const ERL_NIF_TERM argv[])
 {
     ErlNifBinary pdata;
 
@@ -260,8 +313,20 @@ static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
     }
 }
 
-static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
-                              const ERL_NIF_TERM argv[])
+static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
+                                const ERL_NIF_TERM argv[])
+{
+    return SCHEDULE_NIF(
+        env
+        , "compile"
+        , ds_flags
+        , &re2_compile_impl
+        , argc
+        , argv);
+}
+
+static ERL_NIF_TERM re2_match_impl(ErlNifEnv* env, int argc,
+                                   const ERL_NIF_TERM argv[])
 {
     ErlNifBinary sdata;
 
@@ -388,6 +453,18 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
 
         return enif_make_badarg(env);
     }
+}
+
+static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
+                              const ERL_NIF_TERM argv[])
+{
+    return SCHEDULE_NIF(
+        env
+        , "match"
+        , ds_flags
+        , &re2_match_impl
+        , argc
+        , argv);
 }
 
 static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
@@ -517,8 +594,8 @@ static int number_of_capturing_groups(int nr_groups,
     }
 }
 
-static ERL_NIF_TERM re2_replace(ErlNifEnv* env, int argc,
-                                const ERL_NIF_TERM argv[])
+static ERL_NIF_TERM re2_replace_impl(ErlNifEnv* env, int argc,
+                                     const ERL_NIF_TERM argv[])
 {
     ErlNifBinary sdata, rdata;
 
@@ -590,6 +667,18 @@ static ERL_NIF_TERM re2_replace(ErlNifEnv* env, int argc,
     {
         return enif_make_badarg(env);
     }
+}
+
+static ERL_NIF_TERM re2_replace(ErlNifEnv* env, int argc,
+                                const ERL_NIF_TERM argv[])
+{
+    return SCHEDULE_NIF(
+        env
+        , "replace"
+        , ds_flags
+        , &re2_replace_impl
+        , argc
+        , argv);
 }
 
 //
