@@ -87,7 +87,7 @@ static void parse_match_capture_options(ErlNifEnv* env, matchoptions& opts,
 static bool parse_replace_options(ErlNifEnv* env, const ERL_NIF_TERM list,
                                   replaceoptions& opts);
 static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
-                                        const re2::RE2* const re,
+                                        const re2::RE2& re,
                                         const re2::StringPiece& s,
                                         const matchoptions& opts,
                                         std::vector<re2::StringPiece>& group,
@@ -95,7 +95,7 @@ static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
 static int number_of_capturing_groups(int nr_groups,
                                       matchoptions::value_spec vs);
 static ERL_NIF_TERM error(ErlNifEnv* env, const ERL_NIF_TERM err);
-static ERL_NIF_TERM re2error(ErlNifEnv* env, const re2::RE2* const re);
+static ERL_NIF_TERM re2error(ErlNifEnv* env, const re2::RE2& re);
 static ERL_NIF_TERM mres(ErlNifEnv* env,
                          const re2::StringPiece& str,
                          const re2::StringPiece& match,
@@ -244,7 +244,7 @@ static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
         handle->re = new (re2) re2::RE2(p, re2opts); // placement new
 
         if (!handle->re->ok()) {
-            ERL_NIF_TERM error = re2error(env, handle->re);
+            ERL_NIF_TERM error = re2error(env, *(handle->re));
             cleanup_handle(handle);
             enif_release_resource(handle);
             return error;
@@ -349,7 +349,7 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
 
                 // return matched subpatterns as specified in ValueList
 
-                return re2_match_ret_vlist(env, re, s, opts, group, n);
+                return re2_match_ret_vlist(env, *re, s, opts, group, n);
 
             } else {
 
@@ -385,14 +385,14 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
 }
 
 static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
-                                        const re2::RE2* const re,
+                                        const re2::RE2& re,
                                         const re2::StringPiece& s,
                                         const matchoptions& opts,
                                         std::vector<re2::StringPiece>& group,
                                         int n)
 {
     std::vector<ERL_NIF_TERM> vec;
-    const auto &nmap = re->NamedCapturingGroups();
+    const auto &nmap = re.NamedCapturingGroups();
     ERL_NIF_TERM VL,VH,VT;
 
     // empty StringPiece for unfound ValueIds
@@ -854,11 +854,11 @@ static ERL_NIF_TERM error(ErlNifEnv* env, const ERL_NIF_TERM err)
 //
 // convert RE2 error code to error term
 //
-static ERL_NIF_TERM re2error(ErlNifEnv* env, const re2::RE2* const re)
+static ERL_NIF_TERM re2error(ErlNifEnv* env, const re2::RE2& re)
 {
     ERL_NIF_TERM code;
 
-    switch (re->error_code()) {
+    switch (re.error_code()) {
     case re2::RE2::ErrorInternal:          // Unexpected error
         code = a_re2_ErrorInternal;
         break;
@@ -908,9 +908,9 @@ static ERL_NIF_TERM re2error(ErlNifEnv* env, const re2::RE2* const re)
         break;
     }
 
-    ERL_NIF_TERM error = enif_make_string(env, re->error().c_str(),
+    ERL_NIF_TERM error = enif_make_string(env, re.error().c_str(),
                                           ERL_NIF_LATIN1);
-    ERL_NIF_TERM error_arg = enif_make_string(env, re->error_arg().c_str(),
+    ERL_NIF_TERM error_arg = enif_make_string(env, re.error_arg().c_str(),
                                               ERL_NIF_LATIN1);
 
     return enif_make_tuple2(env, a_error,
