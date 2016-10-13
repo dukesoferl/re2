@@ -15,13 +15,13 @@ namespace {
     };
 
     struct matchoptions {
-        enum valuespec { VS_ALL,VS_ALL_BUT_FIRST,VS_FIRST,VS_NONE,VS_VLIST };
+        enum value_spec { VS_ALL,VS_ALL_BUT_FIRST,VS_FIRST,VS_NONE,VS_VLIST };
         enum capture_type { CT_INDEX,CT_LIST,CT_BINARY };
 
         bool caseless;
         int offset;
-        enum valuespec vs;
-        enum capture_type ct;
+        value_spec vs;
+        capture_type ct;
         ERL_NIF_TERM vlist;
 
         matchoptions(ErlNifEnv* env)
