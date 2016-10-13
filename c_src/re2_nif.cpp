@@ -92,6 +92,8 @@ static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
                                         const matchoptions& opts,
                                         std::vector<re2::StringPiece>& group,
                                         int n);
+static int number_of_capturing_groups(int nr_groups,
+                                      matchoptions::value_spec vs);
 static ERL_NIF_TERM error(ErlNifEnv* env, const ERL_NIF_TERM err);
 static ERL_NIF_TERM re2error(ErlNifEnv* env, const re2::RE2* const re);
 static ERL_NIF_TERM mres(ErlNifEnv* env,
@@ -307,7 +309,8 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
         if (!re->ok())
             return enif_make_badarg(env);
 
-        int n = re->NumberOfCapturingGroups()+1;
+        const int nr_groups = re->NumberOfCapturingGroups()+1;
+        const int n = number_of_capturing_groups(nr_groups, opts.vs);
         std::vector<re2::StringPiece> group;
         group.reserve(n);
 
@@ -487,6 +490,25 @@ static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
 
     ERL_NIF_TERM list = enif_make_list_from_array(env,&vec[0],vec.size());
     return enif_make_tuple2(env, a_match, list);
+}
+
+//
+// Get number of capturing groups we want to request from RE2.
+//
+// It's more efficient to avoid requesting all capturing groups if we need none
+// or just the first one.
+//
+static int number_of_capturing_groups(int nr_groups,
+                                      matchoptions::value_spec vs)
+{
+    switch (vs) {
+    case matchoptions::VS_NONE:
+        return 0;
+    case matchoptions::VS_FIRST:
+        return 1;
+    default:
+        return nr_groups;
+    }
 }
 
 static ERL_NIF_TERM re2_replace(ErlNifEnv* env, int argc,
