@@ -315,7 +315,7 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
         group.reserve(n);
 
         if (re->Match(s, opts.offset, s.size(),
-                      re2::RE2::UNANCHORED, &group[0], n))
+                      re2::RE2::UNANCHORED, group.data(), n))
         {
 
             int start = 0;
