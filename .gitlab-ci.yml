@@ -67,7 +67,7 @@ release:
   stage: test
   script:
     - test -x support/rebar || support/getrebar
-    - RE2_TEST_DEPS=1 support/rebar eunit qc
+    - RE2_TEST_DEPS=1 support/rebar eunit
   dependencies:
     - default-build
 
