@@ -6,6 +6,9 @@ REBAR=@`sh -c "PATH='$(PATH)':support which rebar\
 all:
 	@$(REBAR) compile
 
+debug:
+	@$(REBAR) compile -DDEV -DDEBUG
+
 dev:
 	@$(REBAR) compile -DDEV
 
