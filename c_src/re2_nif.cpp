@@ -309,6 +309,12 @@ static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
         if (!re->ok())
             return enif_make_badarg(env);
 
+
+        // nr_groups must be the number of capturing groups + 1 because
+        // group[0] will be the text matched by the entire pattern, group[1]
+        // will be the first capturing group et cetera (assuming n >= 2), if
+        // there are any capturing groups in the regex and opts.vs causes us to
+        // request them.
         const int nr_groups = re->NumberOfCapturingGroups()+1;
         const int n = number_of_capturing_groups(nr_groups, opts.vs);
         std::vector<re2::StringPiece> group;
