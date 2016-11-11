@@ -135,33 +135,6 @@ static ERL_NIF_TERM SCHEDULE_NIF(
 }
 #endif
 
-extern "C" {
-    // Prototypes
-    static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
-                                    const ERL_NIF_TERM argv[]);
-    static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
-                                  const ERL_NIF_TERM argv[]);
-    static ERL_NIF_TERM re2_replace(ErlNifEnv* env, int argc,
-                                    const ERL_NIF_TERM argv[]);
-
-    static ErlNifFunc nif_funcs[] =
-    {
-        NIF_FUNC_ENTRY("compile", 1, re2_compile),
-        NIF_FUNC_ENTRY("compile", 2, re2_compile),
-        NIF_FUNC_ENTRY("match",   2, re2_match),
-        NIF_FUNC_ENTRY("match",   3, re2_match),
-        NIF_FUNC_ENTRY("replace", 3, re2_replace),
-        NIF_FUNC_ENTRY("replace", 4, re2_replace),
-    };
-
-    static void re2_resource_cleanup(ErlNifEnv* env, void* arg);
-    static int on_load(ErlNifEnv* env, void** priv_data,
-                       ERL_NIF_TERM load_info);
-
-    ERL_NIF_INIT(re2, nif_funcs, &on_load, nullptr, nullptr, nullptr)
-} // extern "C"
-
-
 // static variables
 static int ds_flags = 0;
 static ErlNifResourceType* re2_resource_type = nullptr;
@@ -240,41 +213,9 @@ static void init_atoms(ErlNifEnv* env)
     a_re2_ErrorPatternTooLarge   = enif_make_atom(env, "pattern_too_large");
 }
 
-static int on_load(ErlNifEnv* env, void**, ERL_NIF_TERM)
-{
-    ErlNifResourceFlags flags =
-        (ErlNifResourceFlags)(ERL_NIF_RT_CREATE | ERL_NIF_RT_TAKEOVER);
-    ErlNifResourceType* rt = enif_open_resource_type(env, nullptr,
-                                                     "re2_resource",
-                                                     &re2_resource_cleanup,
-                                                     flags, nullptr);
-    if (rt == nullptr)
-        return -1;
-
-    re2_resource_type = rt;
-
-    init_atoms(env);
-
-    if (have_online_dirty_schedulers()) {
-        DBG("dirty schedulers: online\n");
-        ds_flags = DS_MODE;
-    } else {
-        DBG("dirty schedulers: offline or unsupported\n");
-    }
-
-    return 0;
-}
-
 static void cleanup_handle(re2_handle* handle)
 {
     cleanup_obj_ptr(handle->re);
-}
-
-static void re2_resource_cleanup(ErlNifEnv*, void* arg)
-{
-    // Delete any dynamically allocated memory stored in re2_handle
-    re2_handle* handle = (re2_handle*)arg;
-    cleanup_handle(handle);
 }
 
 //
@@ -472,18 +413,6 @@ static ERL_NIF_TERM re2_compile_impl(ErlNifEnv* env, int argc,
     {
         return enif_make_badarg(env);
     }
-}
-
-static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
-                                const ERL_NIF_TERM argv[])
-{
-    return SCHEDULE_NIF(
-        env
-        , "compile"
-        , ds_flags
-        , &re2_compile_impl
-        , argc
-        , argv);
 }
 
 static void parse_match_capture_options(ErlNifEnv* env, matchoptions& opts,
@@ -878,18 +807,6 @@ static ERL_NIF_TERM re2_match_impl(ErlNifEnv* env, int argc,
     }
 }
 
-static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
-                              const ERL_NIF_TERM argv[])
-{
-    return SCHEDULE_NIF(
-        env
-        , "match"
-        , ds_flags
-        , &re2_match_impl
-        , argc
-        , argv);
-}
-
 // ===========
 // re2:replace
 // ===========
@@ -1004,14 +921,88 @@ static ERL_NIF_TERM re2_replace_impl(ErlNifEnv* env, int argc,
     }
 }
 
-static ERL_NIF_TERM re2_replace(ErlNifEnv* env, int argc,
-                                const ERL_NIF_TERM argv[])
-{
-    return SCHEDULE_NIF(
-        env
-        , "replace"
-        , ds_flags
-        , &re2_replace_impl
-        , argc
-        , argv);
-}
+extern "C" {
+    static ERL_NIF_TERM re2_compile(ErlNifEnv* env, int argc,
+                                    const ERL_NIF_TERM argv[])
+    {
+        return SCHEDULE_NIF(
+            env
+            , "compile"
+            , ds_flags
+            , &re2_compile_impl
+            , argc
+            , argv);
+    }
+
+    static ERL_NIF_TERM re2_match(ErlNifEnv* env, int argc,
+                                  const ERL_NIF_TERM argv[])
+    {
+        return SCHEDULE_NIF(
+            env
+            , "match"
+            , ds_flags
+            , &re2_match_impl
+            , argc
+            , argv);
+    }
+
+    static ERL_NIF_TERM re2_replace(ErlNifEnv* env, int argc,
+                                    const ERL_NIF_TERM argv[])
+    {
+        return SCHEDULE_NIF(
+            env
+            , "replace"
+            , ds_flags
+            , &re2_replace_impl
+            , argc
+            , argv);
+    }
+
+    static ErlNifFunc nif_funcs[] =
+    {
+        NIF_FUNC_ENTRY("compile", 1, re2_compile),
+        NIF_FUNC_ENTRY("compile", 2, re2_compile),
+        NIF_FUNC_ENTRY("match",   2, re2_match),
+        NIF_FUNC_ENTRY("match",   3, re2_match),
+        NIF_FUNC_ENTRY("replace", 3, re2_replace),
+        NIF_FUNC_ENTRY("replace", 4, re2_replace),
+    };
+
+    static void re2_resource_cleanup(ErlNifEnv*, void* arg)
+    {
+        // Delete any dynamically allocated memory stored in re2_handle
+        re2_handle* handle = (re2_handle*)arg;
+        cleanup_handle(handle);
+    }
+
+    static int on_load(ErlNifEnv* env, void**, ERL_NIF_TERM)
+    {
+        ErlNifResourceFlags flags =
+            (ErlNifResourceFlags)(ERL_NIF_RT_CREATE | ERL_NIF_RT_TAKEOVER);
+
+        ErlNifResourceType* rt = enif_open_resource_type(env,
+                                                         nullptr,
+                                                         "re2_resource",
+                                                         &re2_resource_cleanup,
+                                                         flags,
+                                                         nullptr);
+
+        if (rt == nullptr)
+            return -1;
+
+        re2_resource_type = rt;
+
+        init_atoms(env);
+
+        if (have_online_dirty_schedulers()) {
+            DBG("dirty schedulers: online\n");
+            ds_flags = DS_MODE;
+        } else {
+            DBG("dirty schedulers: offline or unsupported\n");
+        }
+
+        return 0;
+    }
+
+    ERL_NIF_INIT(re2, nif_funcs, &on_load, nullptr, nullptr, nullptr)
+} // extern "C"
