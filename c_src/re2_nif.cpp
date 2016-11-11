@@ -99,12 +99,27 @@ union re2_handle_union {
 #ifdef RE2_HAVE_DIRTY_SCHEDULERS
 
 #define NIF_FUNC_ENTRY(name, arity, fun) {name, arity, fun, 0}
-#define SCHEDULE_NIF enif_schedule_nif
+
+static bool have_online_dirty_schedulers()
+{
+    ErlNifSysInfo si;
+    enif_system_info(&si, sizeof(si));
+    DBG("dirty_scheduler_support: " << si.dirty_scheduler_support << "\n");
+    return si.dirty_scheduler_support != 0;
+}
+
 #define DS_MODE ERL_NIF_DIRTY_JOB_CPU_BOUND
+#define SCHEDULE_NIF enif_schedule_nif
 
 #else
 
 #define NIF_FUNC_ENTRY(name, arity, fun) {name, arity, fun}
+
+static bool have_online_dirty_schedulers()
+{
+    return false;
+}
+
 #define DS_MODE 0
 static ERL_NIF_TERM SCHEDULE_NIF(
     ErlNifEnv* env
@@ -223,14 +238,6 @@ static void init_atoms(ErlNifEnv* env)
     a_re2_ErrorBadUTF8           = enif_make_atom(env, "bad_utf8");
     a_re2_ErrorBadNamedCapture   = enif_make_atom(env, "bad_named_capture");
     a_re2_ErrorPatternTooLarge   = enif_make_atom(env, "pattern_too_large");
-}
-
-static bool have_online_dirty_schedulers()
-{
-    ErlNifSysInfo si;
-    enif_system_info(&si, sizeof(si));
-    DBG("dirty_scheduler_support: " << si.dirty_scheduler_support << "\n");
-    return si.dirty_scheduler_support != 0;
 }
 
 static int on_load(ErlNifEnv* env, void**, ERL_NIF_TERM)
