@@ -82,6 +82,13 @@ union re2_handle_union {
     re2_handle* p;
 };
 
+#if ERL_NIF_MAJOR_VERSION > 2                                   \
+    || (ERL_NIF_MAJOR_VERSION == 2 && ERL_NIF_MINOR_VERSION >= 7)
+#define NIF_FUNC_ENTRY(name, arity, fun) {name, arity, fun, 0}
+#else
+#define NIF_FUNC_ENTRY(name, arity, fun) {name, arity, fun}
+#endif
+
 #if ERL_NIF_MAJOR_VERSION > 2
 #define RE2_HAVE_DIRTY_SCHEDULERS 1
 #elif ERL_NIF_MAJOR_VERSION == 2
@@ -98,8 +105,6 @@ union re2_handle_union {
 
 #ifdef RE2_HAVE_DIRTY_SCHEDULERS
 
-#define NIF_FUNC_ENTRY(name, arity, fun) {name, arity, fun, 0}
-
 static bool have_online_dirty_schedulers()
 {
     ErlNifSysInfo si;
@@ -112,8 +117,6 @@ static bool have_online_dirty_schedulers()
 #define SCHEDULE_NIF enif_schedule_nif
 
 #else
-
-#define NIF_FUNC_ENTRY(name, arity, fun) {name, arity, fun}
 
 static bool have_online_dirty_schedulers()
 {
