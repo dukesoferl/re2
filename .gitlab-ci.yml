@@ -29,7 +29,7 @@ cache:
   script:
     # Remove old rebar version, so that we initially download the
     # newest version.
-    - test -x support/rebar/ && rm support/rebar
+    - test -x support/rebar && rm support/rebar
     # Even though the tree is clean, we call this here to make sure
     # the cached re2 upstream clone is clean as well.
     - make clean
