@@ -1,10 +1,13 @@
-.PHONY: all clean doc test dialyzer check eunit qc
+.PHONY: all dev clean doc test dialyzer check eunit qc
 
 REBAR=@`sh -c "PATH='$(PATH)':support which rebar\
 	||support/getrebar||echo false"`
 
 all:
 	@$(REBAR) compile
+
+debug:
+	@$(REBAR) compile -DDEV -DDEBUG
 
 dev:
 	@$(REBAR) compile -DDEV

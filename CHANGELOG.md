@@ -1,6 +1,17 @@
 # Change Log
 Noteworthy changes to this project will be documented in this file.
 
+## 1.7.0 - 2016-12-22
+### Changed
+
+- Make use of cpu-bound dirty schedulers if supported and online.
+- Optimize capturing group request if NONE or FIRST. While at it, improve
+  relevant code comments.
+- Refactor RE2 object pointer handling to use std::unique_ptr because it's
+  available now that we depend on C++11 due to RE2 upstream.
+- Use C++11 vec.data() instead of &vec[0] since it's now available.
+- Switch to upstream RE2 2016-11-01 as default RE2 revision.
+
 ## 1.6.0 - 2016-10-08
 ### Fixed
 

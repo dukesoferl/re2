@@ -29,7 +29,8 @@ cache:
   script:
     # Remove old rebar version, so that we initially download the
     # newest version.
-    - test -x support/rebar/ && rm support/rebar
+    - rm -f support/rebar
+    - support/getrebar
     # Even though the tree is clean, we call this here to make sure
     # the cached re2 upstream clone is clean as well.
     - make clean
@@ -66,8 +67,8 @@ release:
 .test_job_template: &test_job_definition
   stage: test
   script:
-    - test -x support/rebar || support/getrebar
-    - RE2_TEST_DEPS=1 support/rebar eunit qc
+    - support/getrebar
+    - RE2_TEST_DEPS=1 support/rebar eunit
   dependencies:
     - default-build
 
