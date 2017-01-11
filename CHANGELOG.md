@@ -1,6 +1,13 @@
 # Change Log
 Noteworthy changes to this project will be documented in this file.
 
+## 1.7.1 - 2017-01-11
+### Changed
+
+- Switch RE2 default revision to 2017-01-01.
+- Print debug messages with re2 prefix.
+- Teach make debug to enable -g and link dbg RE2.
+
 ## 1.7.0 - 2016-12-22
 ### Changed
 
