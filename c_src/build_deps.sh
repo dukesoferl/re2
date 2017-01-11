@@ -6,11 +6,16 @@ test `basename $PWD` != "c_src" && cd c_src
 
 case "$1" in
   clean)
-    rm -rf re2/obj/*
+    rm -r re2/obj
     ;;
 
   *)
-    test -f re2/obj/libre2.a && exit 0
+    if [ x"$DEBUG" = x"1" ]; then
+        LIBRE2="obj/dbg/libre2.a"
+    else
+        LIBRE2="obj/libre2.a"
+    fi
+    test -f re2/$LIBRE2 && exit 0
 
     RE2_REV=${RE2_REV:-2017-01-01}
     test -d re2 || git clone https://code.googlesource.com/re2
@@ -22,6 +27,6 @@ case "$1" in
     MAKE=${MAKE:-make}
     MAKEFLAGS=${MAKEFLAGS:--j2}
     export MAKEFLAGS
-    ($MAKE -C re2 obj/libre2.a CXX="$CXX" CXXFLAGS="$CXXFLAGS")
+    ($MAKE -C re2 $LIBRE2 CXX="$CXX" CXXFLAGS="$CXXFLAGS")
     ;;
 esac
