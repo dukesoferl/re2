@@ -11,7 +11,7 @@
 
 #ifdef DEBUG
     #include <iostream>
-    #define DBG(M) do { std::cerr << M;  } while (false)
+    #define DBG(M) do { std::cerr << "re2: " << M;  } while (false)
 #else
     #define DBG(M) do { } while (false)
 #endif
