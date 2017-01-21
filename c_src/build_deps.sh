@@ -6,7 +6,7 @@ test `basename $PWD` != "c_src" && cd c_src
 
 case "$1" in
   clean)
-    rm -r re2/obj
+    rm -rf re2/obj
     ;;
 
   *)
