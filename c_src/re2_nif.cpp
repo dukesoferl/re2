@@ -418,6 +418,10 @@ static ERL_NIF_TERM re2_compile_impl(ErlNifEnv* env, int argc,
     }
 }
 
+// =========
+// re2:match
+// =========
+
 static void parse_match_capture_options(ErlNifEnv* env, matchoptions& opts,
                                         const ERL_NIF_TERM* tuple,
                                         int tuplearity)
@@ -973,7 +977,7 @@ extern "C" {
 
     static void re2_resource_cleanup(ErlNifEnv*, void* arg)
     {
-        // Delete any dynamically allocated memory stored in re2_handle
+        // Release any dynamically allocated memory stored in re2_handle
         re2_handle* handle = (re2_handle*)arg;
         cleanup_handle(handle);
     }
