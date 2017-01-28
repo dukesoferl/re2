@@ -1,6 +1,11 @@
 # Change Log
 Noteworthy changes to this project will be documented in this file.
 
+## 1.7.2 - 2017-01-28
+### Fixed
+
+- Implement kludge to support evaluation of rebar.config.script by Elixir mix.
+
 ## 1.7.1 - 2017-01-11
 ### Changed
 
