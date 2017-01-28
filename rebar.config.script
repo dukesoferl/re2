@@ -69,14 +69,17 @@ WhichCPPLib = fun() ->
 %% Only look for libc++ if rebar is older than 2.6.4. If it's new
 %% enough, we can omit the extra LDFLAGS, because CXX will be used in
 %% the link command.
-{ok, Rebar2Vsn} = application:get_key(rebar, vsn).
-Rebar2FixedPortCompiler = Rebar2Vsn >= "2.6.4".
-LDFLAGS = case Rebar2FixedPortCompiler of
-              true ->
-                  [];
-              false ->
+LDFLAGS = case application:get_key(rebar, vsn) of
+              {ok, Rebar2Vsn} when Rebar2Vsn < "2.6.4" ->
                   [{"(linux|freebsd|solaris)",
-                    "LDFLAGS", "$LDFLAGS -l" ++ WhichCPPLib()}]
+                    "LDFLAGS", "$LDFLAGS -l" ++ WhichCPPLib()}];
+              _ ->
+                  %% If undefined, Elixir's mix is evaluating
+                  %% rebar.config.script, and since it defaults to using
+                  %% rebar3, the port_compiler plugin will be new enough. If
+                  %% defined, Rebar2Vsn will be newer than 2.6.4 and also good
+                  %% enough.
+                  []
           end.
 
 LocalIncDir = "-Ic_src/re2".
