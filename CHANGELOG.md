@@ -1,7 +1,7 @@
 # Change Log
 Noteworthy changes to this project will be documented in this file.
 
-## 1.7.3 - 2017-??-??
+## 1.7.3 - 2017-04-02
 ### Changed
 
 - Switch RE2 default revision to 2017-03-01.
