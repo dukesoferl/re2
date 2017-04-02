@@ -1,7 +1,7 @@
 {application, re2,
  [
   {description, "Erlang NIF bindings for the re2 regex library"},
-  {vsn, "1.7.3"},
+  {vsn, "1.7.4"},
   {modules, [re2]},
   {registered, []},
   {applications,
