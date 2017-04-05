@@ -18,7 +18,7 @@ case "$1" in
     test -f re2/$LIBRE2 && exit 0
 
     RE2_REV=${RE2_REV:-2017-03-01}
-    test -d re2 || git clone https://code.googlesource.com/re2
+    test -d re2 || git clone https://github.com/google/re2
     (cd re2 && git fetch --all && git checkout $RE2_REV)
 
     CXXFLAGS="-Wall -O3 -fPIC -pthread -std=c++11 -m$ERLANG_ARCH"
