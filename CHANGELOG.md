@@ -1,6 +1,13 @@
 # Change Log
 Noteworthy changes to this project will be documented in this file.
 
+## 1.7.5 - 2017-04-09
+### Changed
+
+- Conditionally get RE2 from github.com/google/re2: If the project has been
+  cloned from github.com/tuncer/re2, then it's safe to fetch RE2 from
+  github.com/google/re2. Otherwise, use code.googlesource.com/re2.
+
 ## 1.7.4 - 2017-04-02
 ### Changed
 
