@@ -18,7 +18,15 @@ case "$1" in
     test -f re2/$LIBRE2 && exit 0
 
     RE2_REV=${RE2_REV:-2017-04-01}
-    test -d re2 || git clone https://code.googlesource.com/re2
+    case $(git config --get remote.origin.url) in
+        git@github.com*|https://github.com*|git://github.com*)
+            RE2_URL=https://github.com/google/re2
+            ;;
+        *)
+            RE2_URL=https://code.googlesource.com/re2
+            ;;
+    esac
+    test -d re2 || git clone $RE2_URL
     (cd re2 && git fetch --all && git checkout $RE2_REV)
 
     CXXFLAGS="-Wall -O3 -fPIC -pthread -std=c++11 -m$ERLANG_ARCH"
