@@ -51,7 +51,7 @@ obtain(bin) ->
                 ok ->
                     case is_escript(Rebar) of
                         true ->
-                            ok = file:change_mode(Rebar, 8#700),
+                            ok = file:change_mode(Rebar, 8#755),
                             {ok, Rebar};
                         false -> false
                     end;
