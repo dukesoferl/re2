@@ -1,6 +1,15 @@
 # Change Log
 Noteworthy changes to this project will be documented in this file.
 
+## 1.7.6 - 2017-06-27
+### Fixed
+
+- getrebar: use more portable chmod
+
+### Changed
+
+- Switch RE2 default revision to 2017-06-01.
+
 ## 1.7.5 - 2017-04-09
 ### Changed
 
