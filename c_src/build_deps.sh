@@ -17,7 +17,7 @@ case "$1" in
     fi
     test -f re2/$LIBRE2 && exit 0
 
-    RE2_REV=${RE2_REV:-2017-06-01}
+    RE2_REV=${RE2_REV:-2017-07-01}
     case $(git config --get remote.origin.url) in
         git@github.com*|https://github.com*|git://github.com*)
             RE2_URL=https://github.com/google/re2
