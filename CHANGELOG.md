@@ -1,6 +1,12 @@
 # Change Log
 Noteworthy changes to this project will be documented in this file.
 
+## 1.7.8 - 2017-08-17
+### Changed
+
+- Switch RE2 default revision to 2017-08-01.
+- gitlab-ci: test with Erlang 20.
+
 ## 1.7.7 - 2017-07-03
 ### Changed
 
