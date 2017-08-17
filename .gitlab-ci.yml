@@ -83,3 +83,7 @@ test:18:
 test:19:
   <<: *test_job_definition
   image: erlang:19
+
+test:20:
+  <<: *test_job_definition
+  image: erlang:20
