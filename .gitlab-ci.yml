@@ -21,24 +21,18 @@ cache:
     - c_src/re2
     - deps
     - .rebar/re2_*_plt
-    - support/rebar
 
 .build_job_template: &build_job_definition
-  image: erlang:17
   stage: build
   script:
-    # Remove old rebar version, so that we initially download the
-    # newest version.
-    - rm -f support/rebar
-    - support/getrebar
+    - rebar -V
     # Even though the tree is clean, we call this here to make sure
     # the cached re2 upstream clone is clean as well.
     - make clean
     - make all doc
-    - support/rebar -V
-    - RE2_TEST_DEPS=1 support/rebar prepare-deps
-    - support/rebar check-plt || support/rebar -vv build-plt
-    - support/rebar -vv dialyze
+    - RE2_TEST_DEPS=1 rebar prepare-deps
+    - rebar check-plt || rebar -vv build-plt
+    - rebar -vv dialyze
     - rm .rebar/erlcinfo
 
 .artifact_paths_template: &artifact_paths_defitinion
@@ -49,6 +43,7 @@ cache:
 
 default-build:
   <<: *build_job_definition
+  image: erlang:17
   artifacts:
     name: "$CI_PROJECT_NAME-ci-${CI_BUILD_REF_NAME}"
     <<: *artifact_paths_defitinion
@@ -58,6 +53,7 @@ default-build:
 
 release:
   <<: *build_job_definition
+  image: erlang:17
   artifacts:
     name: "$CI_PROJECT_NAME-${CI_BUILD_REF_NAME}"
     <<: *artifact_paths_defitinion
@@ -67,8 +63,7 @@ release:
 .test_job_template: &test_job_definition
   stage: test
   script:
-    - support/getrebar
-    - RE2_TEST_DEPS=1 support/rebar eunit
+    - RE2_TEST_DEPS=1 rebar eunit
   dependencies:
     - default-build
 
