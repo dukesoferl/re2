@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2017 Tuncer Ayaz. All Rights Reserved.
+# Copyright (c) 2016-2017 Tuncer Ayaz
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -31,8 +31,6 @@ cache:
     - make clean
     - make all doc
     - RE2_TEST_DEPS=1 rebar prepare-deps
-    - rebar check-plt || rebar -vv build-plt
-    - rebar -vv dialyze
     - rm .rebar/erlcinfo
 
 .artifact_paths_template: &artifact_paths_defitinion
@@ -47,9 +45,9 @@ default-build:
   artifacts:
     name: "$CI_PROJECT_NAME-ci-${CI_BUILD_REF_NAME}"
     <<: *artifact_paths_defitinion
-    # Temporary artifacts for non-release builds are removed after a week
+    # Temporary artifacts for non-release builds are removed after a month
     # because they are just for use in test jobs.
-    expire_in: 1 week
+    expire_in: 1 month
 
 release:
   <<: *build_job_definition
@@ -82,3 +80,12 @@ test:19:
 test:20:
   <<: *test_job_definition
   image: erlang:20
+
+test:dialyze:
+  stage: test
+  image: erlang:20
+  dependencies:
+    - default-build
+  script:
+    - rebar check-plt || rebar -vv build-plt
+    - rebar -vv dialyze
