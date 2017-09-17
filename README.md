@@ -3,7 +3,7 @@
 ## Using re2
 
 The library's API follows the standard Erlang/OTP `re` API as closely as possible
-while accouning for the differences in RE2. One notable difference is that
+while accounting for the differences in RE2. One notable difference is that
 there's no `run/{2,3}` but only `match/{2,3}` as in the C++ API. It would
 be easy to add `run/{2,3}`, if that's needed.
 
