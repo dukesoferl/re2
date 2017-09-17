@@ -4,9 +4,9 @@ Noteworthy changes to this project will be documented in this file.
 ## 1.7.9 - 2017-09-17
 ### Changed
 
-- Published on Hex.pm (Thanks Nathaniel Waisbrot)
-- gitlab-ci: dialyze in a separate job
-- Rewrite README
+- Publish on Hex.pm (Thanks Nathaniel Waisbrot).
+- gitlab-ci: dialyze in a separate job.
+- Rewrite README.
 
 ## 1.7.8 - 2017-08-17
 ### Changed
