@@ -1,0 +1,24 @@
+{application, re2,
+ [
+  {description, "Erlang NIF bindings for the RE2 regex library"},
+  {vsn, "1.7.8"},
+  {modules, [re2]},
+  {registered, []},
+  {applications,
+   [
+    kernel,
+    stdlib
+   ]},
+  {env, []},
+
+  {maintainers, ["Tuncer Ayaz"]},
+  {licenses, ["BSD"]},
+  {links, [
+           {"Source", "https://github.com/tuncer/re2"},
+           {"RE2 library", "https://github.com/google/re2"}
+          ]},
+  {exclude_files, [
+                   "c_src/re2",
+                   "c_src/re2_nif.d"
+                  ]}
+ ]}.
