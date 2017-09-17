@@ -1,5 +1,7 @@
 # Erlang NIF bindings for the RE2 regex library
 
+[![GitLab-CI Build Status](https://gitlab.com/tuncer/re2erl/badges/master/pipeline.svg)](https://gitlab.com/tuncer/re2erl/pipelines)
+
 ## Using re2
 
 The library's API follows the standard Erlang/OTP `re` API as closely as possible
