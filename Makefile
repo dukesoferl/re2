@@ -1,4 +1,4 @@
-.PHONY: all dev clean doc test dialyzer check eunit qc
+.PHONY: all dev clean doc test plt dialyze check eunit qc
 
 REBAR=`sh -c "PATH='$(PATH)':support which rebar\
 	||support/getrebar||echo false"`
@@ -21,7 +21,10 @@ clean:
 distclean: clean
 	@rm -fr c_src/re2
 
-check: test dialyzer
+check: test dialyze
+
+deps:
+	@sh -c "RE2_TEST_DEPS=1 $(REBAR) prepare-deps"
 
 test: eunit qc
 
@@ -31,5 +34,8 @@ eunit:
 qc:
 	@$(REBAR) qc
 
-dialyzer:
-	@dialyzer -n -nn ebin
+plt:
+	@sh -c "$(REBAR) -vv check-plt || $(REBAR) -vv build-plt"
+
+dialyze:
+	@$(REBAR) -vv dialyze

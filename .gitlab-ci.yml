@@ -25,12 +25,10 @@ cache:
 .build_job_template: &build_job_definition
   stage: build
   script:
-    - rebar -V
     # Even though the tree is clean, we call this here to make sure
     # the cached re2 upstream clone is clean as well.
     - make clean
-    - make all doc
-    - RE2_TEST_DEPS=1 rebar prepare-deps
+    - make all doc deps
     - rm .rebar/erlcinfo
 
 .artifact_paths_template: &artifact_paths_defitinion
@@ -61,7 +59,7 @@ release:
 .test_job_template: &test_job_definition
   stage: test
   script:
-    - RE2_TEST_DEPS=1 rebar eunit
+    - RE2_TEST_DEPS=1 make eunit
   dependencies:
     - default-build
 
@@ -87,5 +85,5 @@ test:dialyze:
   dependencies:
     - default-build
   script:
-    - rebar check-plt || rebar -vv build-plt
-    - rebar -vv dialyze
+    - make plt
+    - make dialyze
