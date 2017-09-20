@@ -121,7 +121,6 @@ random_re_tuple() ->
          ?LET(Opts, valid_match_option(Str),
               {Str, RE, Opts})).
 
-%% TODO: This takes quite a while. Check for inefficiencies.
 prop_random_re_spec() ->
     ?FORALL({Str,RE,Opts}, random_re_tuple(),
             re2:match(Str, RE, Opts) =:= re2:match(Str, RE, Opts)).
