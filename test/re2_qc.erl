@@ -99,23 +99,26 @@ prop_replace() ->
 is_substr(Str1, Str2) ->
     nomatch =/= binary:match(Str1, Str2).
 
-value_spec() -> elements(['all',
-                          'all_but_first',
-                          'first',
-                          'none',
-                          value_spec_list()]).
+value_spec_id() -> oneof([non_neg_integer(), atom(), unicode_string()]).
 value_spec_list() -> non_empty(list(value_spec_id())).
-value_spec_id() -> elements([non_neg_integer(), atom(), unicode_string()]).
+value_spec_static() -> elements(['all', 'all_but_first', 'first', 'none']).
+value_spec() -> oneof([value_spec_static(), value_spec_list()]).
+match_static_opt() -> elements(['caseless']).
+match_offset_opt(Str) -> ?LET(Offset, choose(1, length(Str)),
+                              {'offset', Offset}).
+match_capture_1_opt() -> ?LET(VS, value_spec(), {'capture', VS}).
+match_capture_2_opt() -> ?LET({VS, Opts},
+                              {value_spec(), elements(['index', 'binary'])},
+                              {'capture', VS, Opts}).
 valid_match_option(Str) ->
-    elements(['caseless',
-              {'offset', choose(1,length(Str))},
-              {'capture', value_spec()},
-              {'capture', value_spec(), elements(['index','binary'])}
-             ]).
+    [oneof([match_static_opt(),
+            match_offset_opt(Str),
+            match_capture_1_opt(),
+            match_capture_2_opt()])].
 
 random_re_tuple() ->
     ?LET({Str, RE}, {elements(?STRINGS), elements(?REGEXES)},
-         ?LET(Opts, list(valid_match_option(Str)),
+         ?LET(Opts, valid_match_option(Str),
               {Str, RE, Opts})).
 
 %% TODO: This takes quite a while. Check for inefficiencies.
