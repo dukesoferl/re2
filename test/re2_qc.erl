@@ -82,7 +82,7 @@ prop_replace() ->
     ?FORALL({Str,RE,Replacement,Opts},
             {?LET(S, elements(?STRINGS), binary_str(S)),
              elements(?REGEXES),
-             ?LET(S, unicode_string(), binary_str(S)),
+             ?LET(S, unicode_string(64), binary_str(S)),
              replace_options()},
             ?IMPLIES(not is_substr(Str, Replacement),
                      begin
