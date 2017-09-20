@@ -1,4 +1,4 @@
-.PHONY: all dev clean doc test plt dialyze check eunit qc
+.PHONY: all dev clean doc deps test plt dialyze check eunit qc
 
 REBAR=`sh -c "PATH='$(PATH)':support which rebar\
 	||support/getrebar||echo false"`
@@ -32,7 +32,7 @@ eunit:
 	@$(REBAR) eunit
 
 qc:
-	@$(REBAR) qc
+	@sh -c "RE2_TEST_DEPS=1 $(REBAR) qc"
 
 plt:
 	@sh -c "$(REBAR) -vv check-plt || $(REBAR) -vv build-plt"

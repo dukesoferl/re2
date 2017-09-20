@@ -59,7 +59,7 @@ release:
 .test_job_template: &test_job_definition
   stage: test
   script:
-    - RE2_TEST_DEPS=1 make eunit
+    - make test
   dependencies:
     - default-build
 
