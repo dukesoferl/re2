@@ -73,7 +73,7 @@ compile_option() ->
 
 prop_compile() ->
     ?FORALL({RE, Opts}, {elements(?REGEXES), [compile_option()]},
-            {ok, <<>>} =:= re2:compile(RE, Opts)).
+            element(1, re2:compile(RE, Opts)) =:= ok).
 
 replace_options() ->
     elements([[], ['global']]).
