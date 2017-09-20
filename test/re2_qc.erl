@@ -24,8 +24,6 @@ prop_byte() ->
     ?FORALL(Byte, byte(),
             match =:= re2:match([Byte], "^.*", [{capture, none}])).
 
-valid_string() -> non_empty(list(oneof([unicode_char(), unicode_binary()]))).
-
 binary_str(Str) -> unicode:characters_to_binary(Str).
 
 prop_char() ->
@@ -36,7 +34,7 @@ prop_char() ->
             end).
 
 prop_string() ->
-    ?FORALL(Str, valid_string(),
+    ?FORALL(Str, ?LET(Size, choose(1,64), unicode_string(Size)),
             begin
                 S = binary_str(Str),
                 match =:= re2:match(S, "^.+$", [{capture, none}])
@@ -56,7 +54,7 @@ prop_string() ->
 
 random_re_prop({M0, F0}, {M1, F1}) ->
     ?FORALL({Str,RE,Opts},
-            {oneof(?STRINGS), oneof(?REGEXES), oneof(?REGEXOPTS)},
+            {elements(?STRINGS), elements(?REGEXES), elements(?REGEXOPTS)},
             M0:F0(Str, RE, Opts) =:= M1:F1(Str, RE, Opts)).
 
 prop_random_re2() ->
@@ -74,22 +72,22 @@ sanitize_max_mem(Opts) ->
               end, Opts).
 
 compile_option() ->
-    oneof(['caseless', {'max_mem', non_neg_integer()}]).
+    elements(['caseless', {'max_mem', non_neg_integer()}]).
 
 prop_compile() ->
-    ?FORALL({RE, Opts}, {oneof(?REGEXES),
+    ?FORALL({RE, Opts}, {elements(?REGEXES),
                          ?LET(Opts, list(compile_option()),
                               sanitize_max_mem(Opts))},
             {ok, <<>>} =:= re2:compile(RE, Opts)).
 
 replace_options() ->
-    oneof([[], ['global']]).
+    elements([[], ['global']]).
 
 prop_replace() ->
     ?FORALL({Str,RE,Replacement,Opts},
-            {?LET(S, oneof(?STRINGS), binary_str(S)),
-             oneof(?REGEXES),
-             ?LET(S, valid_string(), binary_str(S)),
+            {?LET(S, elements(?STRINGS), binary_str(S)),
+             elements(?REGEXES),
+             ?LET(S, unicode_string(), binary_str(S)),
              replace_options()},
             ?IMPLIES(not is_substr(Str, Replacement),
                      begin
@@ -106,22 +104,22 @@ prop_replace() ->
 is_substr(Str1, Str2) ->
     nomatch =/= binary:match(Str1, Str2).
 
-value_spec() -> oneof(['all',
-                       'all_but_first',
-                       'first',
-                       'none',
-                       value_spec_list()]).
+value_spec() -> elements(['all',
+                          'all_but_first',
+                          'first',
+                          'none',
+                          value_spec_list()]).
 value_spec_list() -> non_empty(list(value_spec_id())).
-value_spec_id() -> oneof([non_neg_integer(), atom(), valid_string()]).
+value_spec_id() -> elements([non_neg_integer(), atom(), unicode_string()]).
 valid_match_option(Str) ->
-    oneof(['caseless',
-           {'offset', choose(1,length(Str))},
-           {'capture', value_spec()},
-           {'capture', value_spec(), oneof(['index','binary'])}
-          ]).
+    elements(['caseless',
+              {'offset', choose(1,length(Str))},
+              {'capture', value_spec()},
+              {'capture', value_spec(), elements(['index','binary'])}
+             ]).
 
 random_re_tuple() ->
-    ?LET({Str, RE}, {oneof(?STRINGS), oneof(?REGEXES)},
+    ?LET({Str, RE}, {elements(?STRINGS), elements(?REGEXES)},
          ?LET(Opts, list(valid_match_option(Str)),
               {Str, RE, Opts})).
 
