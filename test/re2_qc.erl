@@ -65,19 +65,14 @@ prop_random_re_vs_re2() ->
 
 -define(MIN_MEM, 1100).
 -define(MAX_MEM, 2 bsl 30 - 1).
-sanitize_max_mem(Opts) ->
-    lists:map(fun({max_mem, M}) when M < ?MIN_MEM -> {max_mem, ?MIN_MEM};
-                 ({max_mem, M}) when M > ?MAX_MEM -> {max_mem, ?MAX_MEM};
-                 (E) -> E
-              end, Opts).
-
+compile_options_static() -> elements(['caseless']).
+compile_options_dynamic() -> ?LET(MaxMem, choose(?MIN_MEM, ?MAX_MEM),
+                                  {'max_mem', MaxMem}).
 compile_option() ->
-    elements(['caseless', {'max_mem', non_neg_integer()}]).
+    oneof([compile_options_static(), compile_options_dynamic()]).
 
 prop_compile() ->
-    ?FORALL({RE, Opts}, {elements(?REGEXES),
-                         ?LET(Opts, list(compile_option()),
-                              sanitize_max_mem(Opts))},
+    ?FORALL({RE, Opts}, {elements(?REGEXES), [compile_option()]},
             {ok, <<>>} =:= re2:compile(RE, Opts)).
 
 replace_options() ->
