@@ -10,8 +10,8 @@
 %% generate strings from a regex to match and use similar strategies for
 %% replace/2.
 
--ifdef(TRIQ).
 -include_lib("triq/include/triq.hrl").
+-triq(eunit).
 
 prop_number() ->
     ?FORALL(Int, non_neg_integer(),
@@ -124,5 +124,3 @@ random_re_tuple() ->
 prop_random_re_spec() ->
     ?FORALL({Str,RE,Opts}, random_re_tuple(),
             re2:match(Str, RE, Opts) =:= re2:match(Str, RE, Opts)).
-
--endif.
