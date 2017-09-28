@@ -57,6 +57,7 @@ release:
 .test_job_template: &test_job_definition
   stage: test
   script:
+    - make deps
     - make test
 
 test:17:
