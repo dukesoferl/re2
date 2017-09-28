@@ -24,6 +24,7 @@ cache:
 
 .build_job_template: &build_job_definition
   stage: build
+  image: erlang:20
   script:
     # Even though the tree is clean, we call this here to make sure
     # the cached re2 upstream clone is clean as well.
@@ -39,7 +40,6 @@ cache:
 
 default-build:
   <<: *build_job_definition
-  image: erlang:17
   artifacts:
     name: "$CI_PROJECT_NAME-ci-${CI_BUILD_REF_NAME}"
     <<: *artifact_paths_defitinion
@@ -49,7 +49,6 @@ default-build:
 
 release:
   <<: *build_job_definition
-  image: erlang:17
   artifacts:
     name: "$CI_PROJECT_NAME-${CI_BUILD_REF_NAME}"
     <<: *artifact_paths_defitinion
@@ -60,8 +59,6 @@ release:
   stage: test
   script:
     - make test
-  dependencies:
-    - default-build
 
 test:17:
   <<: *test_job_definition
@@ -82,8 +79,7 @@ test:20:
 test:dialyze:
   stage: test
   image: erlang:20
-  dependencies:
-    - default-build
   script:
+    - make
     - make plt
     - make dialyze
