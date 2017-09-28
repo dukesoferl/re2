@@ -19,7 +19,6 @@ cache:
   key: $CI_PROJECT_PATH
   paths:
     - c_src/re2
-    - deps
     - .rebar/re2_*_plt
 
 .build_job_template: &build_job_definition
