@@ -4,11 +4,9 @@
 
 -module(re2_qc).
 
-%% We aim to test the NIFs and not re2 itself, so the properties are only
-%% concerned with making sure the Erlang interface works as documented. That
-%% means, good properties to test re2 itself (not the NIFs) would probably
-%% generate strings from a regex to match and use similar strategies for
-%% replace/2.
+%% We aim to test the NIFs and not RE2 itself, so the properties are
+%% only concerned with making sure the Erlang interface works as
+%% documented.
 
 -include_lib("triq/include/triq.hrl").
 -triq(eunit).
