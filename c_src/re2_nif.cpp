@@ -613,10 +613,12 @@ static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
                 else
                     res = mres(env, s, empty, opts.ct);
 
-                if (enif_is_identical(res, a_err_enif_alloc_binary))
+                if (enif_is_identical(res, a_err_enif_alloc_binary)) {
+                    enif_free(a_id);
                     return error(env, a_err_enif_alloc_binary);
-                else
+                } else {
                     vec.push_back(res);
+                }
             }
             else
             {
@@ -646,10 +648,12 @@ static ERL_NIF_TERM re2_match_ret_vlist(ErlNifEnv* env,
                 else
                     res = mres(env, s, empty, opts.ct);
 
-                if (enif_is_identical(res, a_err_enif_alloc_binary))
+                if (enif_is_identical(res, a_err_enif_alloc_binary)) {
+                    enif_free(str_id);
                     return error(env, a_err_enif_alloc_binary);
-                else
+                } else {
                     vec.push_back(res);
+                }
             }
             else
             {
