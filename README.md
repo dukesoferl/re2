@@ -44,14 +44,13 @@ $ erl
 ```
 ### Advanced build time options
 
-If RE2 is found on the system, it will be used. Otherwise, the
-[RE2](https://github.com/google/re2) dependency is automatically downloaded to
-`c_src/re2` by the build script. If you prefer to link against RE2 as found on
-the system, you can set the env var `SYSTEM_RE2=1`. If you set `SYSTEM_RE2=1` and
-the library can not be found, it will fall back to a local copy, as if you
-didn't use the env var. If you want to override the RE2 version that is fetched
-and built, when not using system RE2, you can do so by setting `RE2_REV` to a
-git rev.
+[RE2](https://github.com/google/re2) is automatically downloaded to `c_src/re2`
+by the build script, and lined into the NIF lib. If you prefer to link against
+[RE2](https://github.com/google/re2) as found on the system, you can set the
+env var `SYSTEM_RE2=1`. If you do that and the library can not be found, it
+will fall back to a local copy (`c_src/re2`). Also, if you want to override the
+RE2 version that is fetched and built, when not using system RE2, you can do so
+by setting `RE2_REV` to a git rev.
 
 Unless otherwise noted, the [RE2](https://github.com/google/re2) source files
 are distributed under the BSD-style license found in `c_src/re2/LICENSE`.
