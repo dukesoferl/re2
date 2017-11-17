@@ -3,7 +3,7 @@
 %% license that can be found in the LICENSE file.
 %%
 %% @doc Erlang NIF bindings for the
-%% <a href="https://code.google.com/p/re2/">re2</a> regex library
+%% <a href="https://code.google.com/p/re2/">RE2</a> regex library
 
 -module(re2).
 -author(tuncerayaz).
