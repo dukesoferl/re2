@@ -1,7 +1,11 @@
 # Change Log
 Noteworthy changes to this project will be documented in this file.
 
-## 1.x.y - 20xx-xx-xx
+## 1.8.0 - 2017-11-19
+### Fixed
+- Fix resource leak in unlikely error case.
+- Fix QuickCheck properties and test them by default.
+
 ### Changed
 - Switch RE2 default revision to 2017-11-01.
 
