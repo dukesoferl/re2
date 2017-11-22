@@ -23,7 +23,7 @@ cache:
 
 .build_job_template: &build_job_definition
   stage: build
-  image: erlang:20
+  image: erlang:21
   script:
     # Even though the tree is clean, we call this here to make sure
     # the cached re2 upstream clone is clean as well.
@@ -77,9 +77,13 @@ test:20:
   <<: *test_job_definition
   image: erlang:20
 
+test:21:
+  <<: *test_job_definition
+  image: erlang:21
+
 test:dialyze:
   stage: test
-  image: erlang:20
+  image: erlang:21
   script:
     - make
     - make plt
