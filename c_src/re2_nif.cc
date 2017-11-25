@@ -948,6 +948,8 @@ static ErlNifFunc nif_funcs[] = {
     NIF_FUNC_ENTRY("compile", 2, re2_compile),
     NIF_FUNC_ENTRY("match", 2, re2_match),
     NIF_FUNC_ENTRY("match", 3, re2_match),
+    NIF_FUNC_ENTRY("run", 2, re2_match),
+    NIF_FUNC_ENTRY("run", 3, re2_match),
     NIF_FUNC_ENTRY("replace", 3, re2_replace),
     NIF_FUNC_ENTRY("replace", 4, re2_replace),
 };
