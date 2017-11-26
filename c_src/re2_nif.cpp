@@ -271,7 +271,7 @@ static ERL_NIF_TERM re2error(ErlNifEnv *env, const re2::RE2 &re)
     case re2::RE2::ErrorInternal:  // Unexpected error
         code = a_re2_ErrorInternal;
         break;
-        // Parse errors
+    // Parse errors
     case re2::RE2::ErrorBadEscape:  // bad escape sequence
         code = a_re2_ErrorBadEscape;
         break;
