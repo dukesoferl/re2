@@ -50,7 +50,7 @@ struct matchoptions
     capture_type ct;
     ERL_NIF_TERM vlist;
 
-    matchoptions(ErlNifEnv *env)
+    matchoptions(ErlNifEnv* env)
     : caseless(false)
     , offset(0)
     , vs(VS_ALL)
@@ -73,7 +73,7 @@ struct replaceoptions
 // destructor. This is used in the NIF resource cleanup callback and in a
 // unique_ptr's deleter.
 template <typename T>
-void cleanup_obj_ptr(T *&ptr)
+void cleanup_obj_ptr(T*& ptr)
 {
     if (ptr != nullptr) {
         ptr->~T();
@@ -86,7 +86,7 @@ void cleanup_obj_ptr(T *&ptr)
 template <typename T>
 struct EnifDeleter
 {
-    void operator()(T *ptr) { cleanup_obj_ptr(ptr); }
+    void operator()(T* ptr) { cleanup_obj_ptr(ptr); }
 };
 using Re2UniquePtr = std::unique_ptr<re2::RE2, EnifDeleter<re2::RE2>>;
 }  // namespace
@@ -94,7 +94,7 @@ using Re2UniquePtr = std::unique_ptr<re2::RE2, EnifDeleter<re2::RE2>>;
 struct re2_handle
 {
     // RE2 objects are thread safe. no locking required.
-    re2::RE2 *re;
+    re2::RE2* re;
 };
 
 //
@@ -105,8 +105,8 @@ struct re2_handle
 //
 union re2_handle_union
 {
-    void *vp;
-    re2_handle *p;
+    void* vp;
+    re2_handle* p;
 };
 
 #if ERL_NIF_MAJOR_VERSION > 2                                                 \
@@ -158,10 +158,10 @@ static bool have_online_dirty_schedulers()
 
 #define DS_MODE 0
 static ERL_NIF_TERM SCHEDULE_NIF(
-    ErlNifEnv *env,
-    const char *,  // fun_name
-    int,           // flags
-    ERL_NIF_TERM (*fp)(ErlNifEnv *, int, const ERL_NIF_TERM[]),
+    ErlNifEnv* env,
+    const char*,  // fun_name
+    int,          // flags
+    ERL_NIF_TERM (*fp)(ErlNifEnv*, int, const ERL_NIF_TERM[]),
     int argc,
     const ERL_NIF_TERM argv[])
 {
@@ -171,7 +171,7 @@ static ERL_NIF_TERM SCHEDULE_NIF(
 
 // static variables
 static int ds_flags                          = 0;
-static ErlNifResourceType *re2_resource_type = nullptr;
+static ErlNifResourceType* re2_resource_type = nullptr;
 static ERL_NIF_TERM a_ok;
 static ERL_NIF_TERM a_error;
 static ERL_NIF_TERM a_match;
@@ -208,7 +208,7 @@ static ERL_NIF_TERM a_re2_ErrorBadUTF8;
 static ERL_NIF_TERM a_re2_ErrorBadNamedCapture;
 static ERL_NIF_TERM a_re2_ErrorPatternTooLarge;
 
-static void init_atoms(ErlNifEnv *env)
+static void init_atoms(ErlNifEnv* env)
 {
     a_ok                         = enif_make_atom(env, "ok");
     a_error                      = enif_make_atom(env, "error");
@@ -247,7 +247,7 @@ static void init_atoms(ErlNifEnv *env)
     a_re2_ErrorPatternTooLarge   = enif_make_atom(env, "pattern_too_large");
 }
 
-static void cleanup_handle(re2_handle *handle)
+static void cleanup_handle(re2_handle* handle)
 {
     cleanup_obj_ptr(handle->re);
 }
@@ -255,7 +255,7 @@ static void cleanup_handle(re2_handle *handle)
 //
 // Make an error tuple
 //
-static ERL_NIF_TERM error(ErlNifEnv *env, const ERL_NIF_TERM err)
+static ERL_NIF_TERM error(ErlNifEnv* env, const ERL_NIF_TERM err)
 {
     return enif_make_tuple2(env, a_error, err);
 }
@@ -263,7 +263,7 @@ static ERL_NIF_TERM error(ErlNifEnv *env, const ERL_NIF_TERM err)
 //
 // convert RE2 error code to error term
 //
-static ERL_NIF_TERM re2error(ErlNifEnv *env, const re2::RE2 &re)
+static ERL_NIF_TERM re2error(ErlNifEnv* env, const re2::RE2& re)
 {
     ERL_NIF_TERM code;
 
@@ -326,24 +326,24 @@ static ERL_NIF_TERM re2error(ErlNifEnv *env, const re2::RE2 &re)
         env, a_error, enif_make_tuple3(env, code, error, error_arg));
 }
 
-static char *alloc_atom(ErlNifEnv *env, const ERL_NIF_TERM atom, unsigned *len)
+static char* alloc_atom(ErlNifEnv* env, const ERL_NIF_TERM atom, unsigned* len)
 {
     unsigned atom_len;
     if (!enif_get_atom_length(env, atom, &atom_len, ERL_NIF_LATIN1))
         return nullptr;
     atom_len++;
     *len = atom_len;
-    return (char *)enif_alloc(atom_len);
+    return (char*)enif_alloc(atom_len);
 }
 
-static char *alloc_str(ErlNifEnv *env, const ERL_NIF_TERM list, unsigned *len)
+static char* alloc_str(ErlNifEnv* env, const ERL_NIF_TERM list, unsigned* len)
 {
     unsigned list_len;
     if (!enif_get_list_length(env, list, &list_len))
         return nullptr;
     list_len++;
     *len = list_len;
-    return (char *)enif_alloc(list_len);
+    return (char*)enif_alloc(list_len);
 }
 
 // ===========
@@ -355,7 +355,7 @@ static char *alloc_str(ErlNifEnv *env, const ERL_NIF_TERM list, unsigned *len)
 // Option = caseless | {max_mem, int()}
 //
 static bool parse_compile_options(
-    ErlNifEnv *env, const ERL_NIF_TERM list, re2::RE2::Options &opts)
+    ErlNifEnv* env, const ERL_NIF_TERM list, re2::RE2::Options& opts)
 {
     if (enif_is_empty_list(env, list))
         return true;
@@ -363,7 +363,7 @@ static bool parse_compile_options(
     ERL_NIF_TERM L, H, T;
 
     for (L = list; enif_get_list_cell(env, L, &H, &T); L = T) {
-        const ERL_NIF_TERM *tuple;
+        const ERL_NIF_TERM* tuple;
         int tuplearity = -1;
 
         if (enif_is_identical(H, a_caseless)) {
@@ -395,13 +395,13 @@ static bool parse_compile_options(
 }
 
 static ERL_NIF_TERM re2_compile_impl(
-    ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
+    ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     ErlNifBinary pdata;
 
     if (enif_inspect_iolist_as_binary(env, argv[0], &pdata)) {
-        const re2::StringPiece p((const char *)pdata.data, pdata.size);
-        re2_handle *handle = (re2_handle *)enif_alloc_resource(
+        const re2::StringPiece p((const char*)pdata.data, pdata.size);
+        re2_handle* handle = (re2_handle*)enif_alloc_resource(
             re2_resource_type, sizeof(re2_handle));
 
         if (handle == nullptr) {
@@ -419,7 +419,7 @@ static ERL_NIF_TERM re2_compile_impl(
             return enif_make_badarg(env);
         }
 
-        re2::RE2 *re2 = (re2::RE2 *)enif_alloc(sizeof(re2::RE2));
+        re2::RE2* re2 = (re2::RE2*)enif_alloc(sizeof(re2::RE2));
         if (re2 == nullptr) {
             cleanup_handle(handle);
             enif_release_resource(handle);
@@ -447,9 +447,9 @@ static ERL_NIF_TERM re2_compile_impl(
 // =========
 
 static void parse_match_capture_options(
-    ErlNifEnv *env,
-    matchoptions &opts,
-    const ERL_NIF_TERM *tuple,
+    ErlNifEnv* env,
+    matchoptions& opts,
+    const ERL_NIF_TERM* tuple,
     int tuplearity)
 {
     bool vs_set = false;
@@ -502,7 +502,7 @@ static void parse_match_capture_options(
 // ValueID = int() | string() | atom()
 //
 static bool parse_match_options(
-    ErlNifEnv *env, const ERL_NIF_TERM list, matchoptions &opts)
+    ErlNifEnv* env, const ERL_NIF_TERM list, matchoptions& opts)
 {
     if (enif_is_empty_list(env, list))
         return true;
@@ -510,7 +510,7 @@ static bool parse_match_options(
     ERL_NIF_TERM L, H, T;
 
     for (L = list; enif_get_list_cell(env, L, &H, &T); L = T) {
-        const ERL_NIF_TERM *tuple;
+        const ERL_NIF_TERM* tuple;
         int tuplearity = -1;
 
         if (enif_is_identical(H, a_caseless)) {
@@ -552,9 +552,9 @@ static bool parse_match_options(
 // build result for re2:match
 //
 static ERL_NIF_TERM mres(
-    ErlNifEnv *env,
-    const re2::StringPiece &str,
-    const re2::StringPiece &match,
+    ErlNifEnv* env,
+    const re2::StringPiece& str,
+    const re2::StringPiece& match,
     const matchoptions::capture_type ct)
 {
     switch (ct) {
@@ -580,15 +580,15 @@ static ERL_NIF_TERM mres(
 }
 
 static ERL_NIF_TERM re2_match_ret_vlist(
-    ErlNifEnv *env,
-    const re2::RE2 &re,
-    const re2::StringPiece &s,
-    const matchoptions &opts,
-    std::vector<re2::StringPiece> &group,
+    ErlNifEnv* env,
+    const re2::RE2& re,
+    const re2::StringPiece& s,
+    const matchoptions& opts,
+    std::vector<re2::StringPiece>& group,
     int n)
 {
     std::vector<ERL_NIF_TERM> vec;
-    const auto &nmap = re.NamedCapturingGroups();
+    const auto& nmap = re.NamedCapturingGroups();
     ERL_NIF_TERM VL, VH, VT;
 
     // empty StringPiece for unfound ValueIds
@@ -621,7 +621,7 @@ static ERL_NIF_TERM re2_match_ret_vlist(
             // ValueID atom()
 
             unsigned atom_len;
-            char *a_id = alloc_atom(env, VH, &atom_len);
+            char* a_id = alloc_atom(env, VH, &atom_len);
             if (a_id == nullptr)
                 return error(env, a_err_enif_alloc);
 
@@ -651,7 +651,7 @@ static ERL_NIF_TERM re2_match_ret_vlist(
             // ValueID string()
 
             unsigned str_len;
-            char *str_id = alloc_str(env, VH, &str_len);
+            char* str_id = alloc_str(env, VH, &str_len);
             if (str_id == nullptr)
                 return error(env, a_err_enif_alloc);
 
@@ -704,13 +704,13 @@ static int number_of_capturing_groups(
 }
 
 static ERL_NIF_TERM re2_match_impl(
-    ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
+    ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     ErlNifBinary sdata;
 
     if (enif_inspect_iolist_as_binary(env, argv[0], &sdata)) {
-        const re2::StringPiece s((const char *)sdata.data, sdata.size);
-        re2::RE2 *re               = nullptr;
+        const re2::StringPiece s((const char*)sdata.data, sdata.size);
+        re2::RE2* re               = nullptr;
         Re2UniquePtr re_unique_ptr = nullptr;
         union re2_handle_union handle;
         ErlNifBinary pdata;
@@ -727,12 +727,12 @@ static ERL_NIF_TERM re2_match_impl(
             if (opts.caseless)  // caseless allowed either in compile or match
                 return enif_make_badarg(env);
         } else if (enif_inspect_iolist_as_binary(env, argv[1], &pdata)) {
-            const re2::StringPiece p((const char *)pdata.data, pdata.size);
+            const re2::StringPiece p((const char*)pdata.data, pdata.size);
             re2::RE2::Options re2opts;
             re2opts.set_log_errors(false);
             if (opts.caseless)
                 re2opts.set_case_sensitive(false);
-            re2::RE2 *re2 = (re2::RE2 *)enif_alloc(sizeof(re2::RE2));
+            re2::RE2* re2 = (re2::RE2*)enif_alloc(sizeof(re2::RE2));
             if (re2 == nullptr)
                 return error(env, a_err_enif_alloc);
             // Save temporary RE2 obj for use in this function
@@ -798,8 +798,8 @@ static ERL_NIF_TERM re2_match_impl(
 
                 // return all or all_but_first matches
 
-                ERL_NIF_TERM *arr
-                    = (ERL_NIF_TERM *)enif_alloc(sizeof(ERL_NIF_TERM) * n);
+                ERL_NIF_TERM* arr
+                    = (ERL_NIF_TERM*)enif_alloc(sizeof(ERL_NIF_TERM) * n);
                 for (int i = start, arridx = 0; i < n; i++, arridx++) {
                     ERL_NIF_TERM res = mres(env, s, group[i], opts.ct);
                     if (enif_is_identical(res, a_err_enif_alloc_binary)) {
@@ -834,7 +834,7 @@ static ERL_NIF_TERM re2_match_impl(
 // Option = global
 //
 static bool parse_replace_options(
-    ErlNifEnv *env, const ERL_NIF_TERM list, replaceoptions &opts)
+    ErlNifEnv* env, const ERL_NIF_TERM list, replaceoptions& opts)
 {
     if (enif_is_empty_list(env, list))
         return true;
@@ -855,7 +855,7 @@ static bool parse_replace_options(
 //
 // build result for re2:replace
 //
-static ERL_NIF_TERM rres(ErlNifEnv *env, const std::string &s)
+static ERL_NIF_TERM rres(ErlNifEnv* env, const std::string& s)
 {
     ErlNifBinary bsubst;
     if (!enif_alloc_binary(s.size(), &bsubst))
@@ -865,15 +865,15 @@ static ERL_NIF_TERM rres(ErlNifEnv *env, const std::string &s)
 }
 
 static ERL_NIF_TERM re2_replace_impl(
-    ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
+    ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     ErlNifBinary sdata, rdata;
 
     if (enif_inspect_iolist_as_binary(env, argv[0], &sdata)
         && enif_inspect_iolist_as_binary(env, argv[2], &rdata)) {
-        std::string s((const char *)sdata.data, sdata.size);
-        const re2::StringPiece r((const char *)rdata.data, rdata.size);
-        re2::RE2 *re               = nullptr;
+        std::string s((const char*)sdata.data, sdata.size);
+        const re2::StringPiece r((const char*)rdata.data, rdata.size);
+        re2::RE2* re               = nullptr;
         Re2UniquePtr re_unique_ptr = nullptr;
         union re2_handle_union handle;
         ErlNifBinary pdata;
@@ -883,10 +883,10 @@ static ERL_NIF_TERM re2_replace_impl(
             // Save existing RE2 obj for use in this function
             re = handle.p->re;
         } else if (enif_inspect_iolist_as_binary(env, argv[1], &pdata)) {
-            const re2::StringPiece p((const char *)pdata.data, pdata.size);
+            const re2::StringPiece p((const char*)pdata.data, pdata.size);
             re2::RE2::Options re2opts;
             re2opts.set_log_errors(false);
-            re2::RE2 *re2 = (re2::RE2 *)enif_alloc(sizeof(re2::RE2));
+            re2::RE2* re2 = (re2::RE2*)enif_alloc(sizeof(re2::RE2));
             if (re2 == nullptr)
                 return error(env, a_err_enif_alloc);
             // Save temporary RE2 obj for use in this function
@@ -924,20 +924,20 @@ static ERL_NIF_TERM re2_replace_impl(
 
 extern "C" {
 static ERL_NIF_TERM re2_compile(
-    ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
+    ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     return SCHEDULE_NIF(
         env, "compile", ds_flags, &re2_compile_impl, argc, argv);
 }
 
 static ERL_NIF_TERM re2_match(
-    ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
+    ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     return SCHEDULE_NIF(env, "match", ds_flags, &re2_match_impl, argc, argv);
 }
 
 static ERL_NIF_TERM re2_replace(
-    ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
+    ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     return SCHEDULE_NIF(
         env, "replace", ds_flags, &re2_replace_impl, argc, argv);
@@ -952,19 +952,19 @@ static ErlNifFunc nif_funcs[] = {
     NIF_FUNC_ENTRY("replace", 4, re2_replace),
 };
 
-static void re2_resource_cleanup(ErlNifEnv *, void *arg)
+static void re2_resource_cleanup(ErlNifEnv*, void* arg)
 {
     // Release any dynamically allocated memory stored in re2_handle
-    re2_handle *handle = (re2_handle *)arg;
+    re2_handle* handle = (re2_handle*)arg;
     cleanup_handle(handle);
 }
 
-static int on_load(ErlNifEnv *env, void **, ERL_NIF_TERM)
+static int on_load(ErlNifEnv* env, void**, ERL_NIF_TERM)
 {
     ErlNifResourceFlags flags
         = (ErlNifResourceFlags)(ERL_NIF_RT_CREATE | ERL_NIF_RT_TAKEOVER);
 
-    ErlNifResourceType *rt = enif_open_resource_type(
+    ErlNifResourceType* rt = enif_open_resource_type(
         env, nullptr, "re2_resource", &re2_resource_cleanup, flags, nullptr);
 
     if (rt == nullptr)
