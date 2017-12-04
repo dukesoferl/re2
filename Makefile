@@ -1,7 +1,6 @@
 .PHONY: all dev clean doc deps test plt dialyze check eunit
 
-REBAR=`sh -c "PATH='$(PATH)':support which rebar\
-	||support/getrebar||echo false"`
+REBAR=`sh -c "PATH='$(PATH)':dev which rebar||dev/getrebar||echo false"`
 
 all:
 	@$(REBAR) compile
