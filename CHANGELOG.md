@@ -1,6 +1,11 @@
 # Change Log
 Noteworthy changes to this project will be documented in this file.
 
+## 1.8.1 - 2017-??-??
+### Changed
+
+- Switch RE2 default revision to 2017-12-01.
+
 ## 1.8.0 - 2017-11-19
 ### Fixed
 - Fix resource leak in unlikely error case.
