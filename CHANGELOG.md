@@ -1,10 +1,11 @@
 # Change Log
 Noteworthy changes to this project will be documented in this file.
 
-## 1.8.1 - 2017-??-??
+## 1.8.1 - 2018-01-01
 ### Changed
 
 - Switch RE2 default revision to 2017-12-01.
+- Use clang-format for C++ formatting.
 
 ## 1.8.0 - 2017-11-19
 ### Fixed
