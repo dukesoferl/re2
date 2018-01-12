@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+
+if [ ! -d ".org-mode" ]; then
+    curl -o org-latest.tar.gz https://orgmode.org/org-latest.tar.gz
+    tar xf org-latest.tar.gz
+    mv org-mode .org-mode
+fi
+
+if [ ! -e ".org-mode/lisp/org.elc" ]; then
+    (cd .org-mode && make)
+fi

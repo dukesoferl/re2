@@ -14,6 +14,25 @@
 
 variables:
   GIT_DEPTH: "3"
+  DEFAULT_IMAGE: erlang:20-alpine
+
+pages:
+  stage: deploy
+  image: $DEFAULT_IMAGE
+  before_script:
+    - apk add --update make emacs texinfo ca-certificates curl
+    - update-ca-certificates
+    - cd pages
+    - ./install
+    - cd ..
+  script:
+    - make pages
+    - mv pages/out public
+  artifacts:
+    paths:
+      - public
+  only:
+    - master
 
 cache:
   key: $CI_PROJECT_PATH
@@ -23,7 +42,7 @@ cache:
 
 .build_job_template: &build_job_definition
   stage: build
-  image: erlang:20
+  image: $DEFAULT_IMAGE
   script:
     # Even though the tree is clean, we call this here to make sure
     # the cached re2 upstream clone is clean as well.
@@ -75,11 +94,11 @@ test:19:
 
 test:20:
   <<: *test_job_definition
-  image: erlang:20
+  image: $DEFAULT_IMAGE
 
 test:dialyze:
   stage: test
-  image: erlang:20
+  image: $DEFAULT_IMAGE
   script:
     - make
     - make plt

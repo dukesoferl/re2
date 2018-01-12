@@ -14,3 +14,7 @@
 /rebar.lock
 /*.html
 /compile_commands.json
+/public
+/pages/out
+/pages/.org-mode
+/pages/org-latest.tar.gz

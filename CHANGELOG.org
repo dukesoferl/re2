@@ -1,0 +1,379 @@
+#+OPTIONS: ^:nil
+#+TITLE: Change Log
+
+* Noteworthy changes to this project will be documented in this file.
+  :PROPERTIES:
+  :CUSTOM_ID: change-log
+  :END:
+
+
+** 1.8.2 - 2018-??-??
+   :PROPERTIES:
+   :CUSTOM_ID: section
+   :END:
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed
+    :END:
+
+- Switch RE2 default revision to 2018-02-01.
+
+** 1.8.1 - 2018-01-01
+   :PROPERTIES:
+   :CUSTOM_ID: section-1
+   :END:
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed-1
+    :END:
+
+- Switch RE2 default revision to 2017-12-01.
+- Use clang-format for C++ formatting.
+
+** 1.8.0 - 2017-11-19
+   :PROPERTIES:
+   :CUSTOM_ID: section-2
+   :END:
+
+*** Fixed
+    :PROPERTIES:
+    :CUSTOM_ID: fixed
+    :END:
+
+- Fix resource leak in unlikely error case.
+- Fix QuickCheck properties and test them by default.
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed-2
+    :END:
+
+- Switch RE2 default revision to 2017-11-01.
+
+** 1.7.9 - 2017-09-17
+   :PROPERTIES:
+   :CUSTOM_ID: section-3
+   :END:
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed-3
+    :END:
+
+- Publish on Hex.pm (Thanks Nathaniel Waisbrot).
+- gitlab-ci: dialyze in a separate job.
+- Rewrite README.
+
+** 1.7.8 - 2017-08-17
+   :PROPERTIES:
+   :CUSTOM_ID: section-4
+   :END:
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed-4
+    :END:
+
+- Switch RE2 default revision to 2017-08-01.
+- gitlab-ci: test with Erlang 20.
+
+** 1.7.7 - 2017-07-03
+   :PROPERTIES:
+   :CUSTOM_ID: section-5
+   :END:
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed-5
+    :END:
+
+- Switch RE2 default revision to 2017-07-01.
+
+** 1.7.6 - 2017-06-27
+   :PROPERTIES:
+   :CUSTOM_ID: section-6
+   :END:
+
+*** Fixed
+    :PROPERTIES:
+    :CUSTOM_ID: fixed-1
+    :END:
+
+- getrebar: use more portable chmod
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed-6
+    :END:
+
+- Switch RE2 default revision to 2017-06-01.
+
+** 1.7.5 - 2017-04-09
+   :PROPERTIES:
+   :CUSTOM_ID: section-7
+   :END:
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed-7
+    :END:
+
+- Conditionally get RE2 from github.com/google/re2: If the project has
+  been cloned from github.com/tuncer/re2, then it's safe to fetch RE2
+  from github.com/google/re2. Otherwise, use code.googlesource.com/re2.
+
+** 1.7.4 - 2017-04-02
+   :PROPERTIES:
+   :CUSTOM_ID: section-8
+   :END:
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed-8
+    :END:
+
+- Switch RE2 default revision to 2017-04-01.
+
+** 1.7.3 - 2017-04-02
+   :PROPERTIES:
+   :CUSTOM_ID: section-9
+   :END:
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed-9
+    :END:
+
+- Switch RE2 default revision to 2017-03-01.
+
+** 1.7.2 - 2017-01-28
+   :PROPERTIES:
+   :CUSTOM_ID: section-10
+   :END:
+
+*** Fixed
+    :PROPERTIES:
+    :CUSTOM_ID: fixed-2
+    :END:
+
+- Implement kludge to support evaluation of rebar.config.script by
+  Elixir mix.
+
+** 1.7.1 - 2017-01-11
+   :PROPERTIES:
+   :CUSTOM_ID: section-11
+   :END:
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed-10
+    :END:
+
+- Switch RE2 default revision to 2017-01-01.
+- Print debug messages with re2 prefix.
+- Teach make debug to enable -g and link dbg RE2.
+
+** 1.7.0 - 2016-12-22
+   :PROPERTIES:
+   :CUSTOM_ID: section-12
+   :END:
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed-11
+    :END:
+
+- Make use of cpu-bound dirty schedulers if supported and online.
+- Optimize capturing group request if NONE or FIRST. While at it,
+  improve relevant code comments.
+- Refactor RE2 object pointer handling to use std::unique\_ptr because
+  it's available now that we depend on C++11 due to RE2 upstream.
+- Use C++11 vec.data() instead of &vec[0] since it's now available.
+- Switch to upstream RE2 2016-11-01 as default RE2 revision.
+
+** 1.6.0 - 2016-10-08
+   :PROPERTIES:
+   :CUSTOM_ID: section-13
+   :END:
+
+*** Fixed
+    :PROPERTIES:
+    :CUSTOM_ID: fixed-3
+    :END:
+
+- Fix memory leak with literal regexes. Thanks to reports by Mark Peng,
+  Mathieu D'Amours and bkolodziej.
+
+** 1.5.0 - 2016-08-29
+   :PROPERTIES:
+   :CUSTOM_ID: section-14
+   :END:
+
+*** Fixed
+    :PROPERTIES:
+    :CUSTOM_ID: fixed-4
+    :END:
+
+- build: fix rebar3 hooks and make building with rebar3 reliable.
+  Requires pc (port\_compiler) plugin >=1.3.
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed-12
+    :END:
+
+- build: adapt port env to fixed rebar port compiler plugin, which now
+  correctly uses CXX to link and not CC. That means, we don't explicitly
+  pass -lc++ or -lstdc++ anymore because the link command does the right
+  thing for C++ now. This worked in the past, but with the introduction
+  of C++11 due to upstream, and the need for a newer toolchain, this
+  started to affect certain environments like CentOS. Using CXX as the
+  compile driver is the correct thing to do, and it fixes the CentOS
+  issue. This was fixed in rebar 2.6.3, but because it works correctly
+  for almost everywhere but environments like CentOS,
+  rebar.config.script supports older rebar versions as well.
+- build: allow upstream re2 git rev override via RE2\_REV env var.
+- build: instead of hard-coding -j2, use MAKEFLAGS and of course respect
+  it if already set.
+- Add GitLab CI config.
+
+** 1.4.1 - 2016-07-12
+   :PROPERTIES:
+   :CUSTOM_ID: section-15
+   :END:
+
+*** Fixed
+    :PROPERTIES:
+    :CUSTOM_ID: fixed-5
+    :END:
+
+- Consider libre2.dylib when looking for system re2.
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed-13
+    :END:
+
+- Switch default upstream re2 to 2016-06-01.
+
+** 1.4.0 - 2016-03-14
+   :PROPERTIES:
+   :CUSTOM_ID: section-16
+   :END:
+
+*** Fixed
+    :PROPERTIES:
+    :CUSTOM_ID: fixed-6
+    :END:
+
+- Link against libc++ when appropriate.
+- Build re2\_nif.so with -std=c++11 due to upstream requirement. This is
+  in addition to the recent change to build the local re2 in C++11 mode.
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed-14
+    :END:
+
+- Allow linking against system libre2, if env var SYSTEM\_RE2 is set,
+  and fall back to local re2 if not found.
+- Allow overriding pinned re2 upstream git revision via RE2\_REV env
+  var.
+- Implement rebar3 support.
+
+** 1.3.1 - 2016-02-11
+   :PROPERTIES:
+   :CUSTOM_ID: section-17
+   :END:
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed-15
+    :END:
+
+- Use common single dash -std=c++11 instead of --std=c++11.
+
+** 1.3.0 - 2016-02-11
+   :PROPERTIES:
+   :CUSTOM_ID: section-18
+   :END:
+
+*** Fixed
+    :PROPERTIES:
+    :CUSTOM_ID: fixed-7
+    :END:
+
+- Adapt to upstream requirement to build re2 in C++11 mode.
+
+** 1.2.2 - 2016-02-11
+   :PROPERTIES:
+   :CUSTOM_ID: section-19
+   :END:
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed-16
+    :END:
+
+- Pin last upstream re2 release before C++11 was introduced.
+
+** 1.2.1 - 2015-05-12
+   :PROPERTIES:
+   :CUSTOM_ID: section-20
+   :END:
+
+*** Fixed
+    :PROPERTIES:
+    :CUSTOM_ID: fixed-8
+    :END:
+
+- Add nif fun entry macro to adapt to NIF API changes.
+
+** 1.2 - 2015-04-19
+   :PROPERTIES:
+   :CUSTOM_ID: section-21
+   :END:
+
+*** Fixed
+    :PROPERTIES:
+    :CUSTOM_ID: fixed-9
+    :END:
+
+- Adapt to upstream re2's move to git.
+
+*** Added
+    :PROPERTIES:
+    :CUSTOM_ID: added
+    :END:
+
+- Add QuickCheck properties.
+
+** 1.1 - 2014-11-25
+   :PROPERTIES:
+   :CUSTOM_ID: section-22
+   :END:
+
+*** Fixed
+    :PROPERTIES:
+    :CUSTOM_ID: fixed-10
+    :END:
+
+- Make a small efficiency improvement in re2:replace.
+- Update tests and specs.
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed-17
+    :END:
+
+- Remove dead code.
+- Fix minor issues in getrebar escript.
+
+** 1.0 - 2014-11-25
+   :PROPERTIES:
+   :CUSTOM_ID: section-23
+   :END:
+
+- First official release tag, but the library has been stable for years.

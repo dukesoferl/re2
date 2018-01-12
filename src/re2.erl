@@ -3,7 +3,7 @@
 %% license that can be found in the LICENSE file.
 %%
 %% @doc Erlang NIF bindings for the
-%% <a href="https://code.google.com/p/re2/">RE2</a> regex library
+%% <a href="https://github.com/google/re2">RE2</a> regex library
 
 -module(re2).
 -author(tuncerayaz).
@@ -54,12 +54,10 @@ load_nif() ->
 
 -type uncompiled_regex() :: iodata().
 -type compiled_regex() :: any().
-%% compiled_regex/0 is an opaque datatype containing a compiled regex
-%% created by enif_make_resource(). Resources are totally opaque,
-%% which means the actual type is undefined. In the current Erlang VM
-%% they behave like empty (&lt;&lt;&gt;&gt;) binaries on the Erlang
-%% side, but that could change in future releases. Therefore, make no
-%% assumptions, and always treat it as an opaque datatype.
+%% compiled_regex/0 is an opaque datatype containing a compiled regex created
+%% by enif_make_resource(). Resources are totally opaque, which means the
+%% actual type is undefined and you can make no assumption to pattern match
+%% the compiled regex.
 -type subject() :: iodata().
 -type regex() :: uncompiled_regex() | compiled_regex().
 -type replacement() :: iodata().

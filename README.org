@@ -1,0 +1,85 @@
+#+OPTIONS: ^:nil
+#+TITLE: re2
+
+* Erlang NIF bindings for the RE2 regex library
+  :PROPERTIES:
+  :CUSTOM_ID: erlang-nif-bindings-for-the-re2-regex-library
+  :END:
+
+
+#+BEGIN_EXPORT html
+<a href="https://gitlab.com/tuncer/re2erl/pipelines"><img src="https://gitlab.com/tuncer/re2erl/badges/master/pipeline.svg"></a>
+#+END_EXPORT
+
+** Using re2
+   :PROPERTIES:
+   :CUSTOM_ID: using-re2
+   :END:
+
+The library's API follows the standard Erlang/OTP =re= API as closely as
+possible while accounting for the differences in RE2. One notable
+difference is that there's no =run/{2,3}= but only =match/{2,3}= as in
+the C++ API. It would be easy to add =run/{2,3}=, if that's needed.
+
+** Obtaining re2
+   :PROPERTIES:
+   :CUSTOM_ID: obtaining-re2
+   :END:
+
+*** Installation via package manager
+    :PROPERTIES:
+    :CUSTOM_ID: installation-via-package-manager
+    :END:
+
+To use =re2=, you can add it as a project dependency and let your
+package manager of choice handle it:
+
+rebar.config: ={re2, "1.*"}=
+
+erlang.mk: =DEPS = re2=
+
+mix.exs: ={:re2, "~> 1.*"}=
+
+*** Installation from source into =$ERL_LIBS=
+    :PROPERTIES:
+    :CUSTOM_ID: installation-from-source-into-erl_libs
+    :END:
+
+If you want to make =re2= available globally, you can install it from
+source into your Erlang installation by adding it in one of your
+=$ERL_LIBS= paths. So, it's either somewhere like
+=/usr/lib/erlang/lib= or =$HOME/.erl=.
+
+You can either download a tagged release from
+=https://github.com/tuncer/re2/releases= and extract that or clone the
+git repo =https://github.com/tuncer/re2= in the target directory. Once
+that's done, cd into the directory and run =rebar compile= or just
+=make=.
+
+Now, if you start =erl=, you should be able to call functions from the
+=re2= module.
+
+#+BEGIN_EXAMPLE
+    $ erl
+    1> code:which(re2).
+    "/usr/lib/erlang/lib/re2/ebin/re2.beam"
+    2>
+#+END_EXAMPLE
+
+*** Advanced build time options
+    :PROPERTIES:
+    :CUSTOM_ID: advanced-build-time-options
+    :END:
+
+[[https://github.com/google/re2][RE2]] is automatically downloaded to
+=c_src/re2= by the build script, and linked into the NIF lib. If you
+prefer to link against [[https://github.com/google/re2][RE2]] as found
+on the system, you can set the env var =SYSTEM_RE2=1=. If you do that
+and the library can not be found, it will fall back to a local copy
+(=c_src/re2=). Also, if you want to override the RE2 version that is
+fetched and built, when not using system RE2, you can do so by setting
+=RE2_REV= to a git rev.
+
+Unless otherwise noted, the [[https://github.com/google/re2][RE2]]
+source files are distributed under the BSD-style license found in
+=c_src/re2/LICENSE=.

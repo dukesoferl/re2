@@ -1,0 +1,11 @@
+** [[file:index.org][Index]]
+   :PROPERTIES:
+   :CUSTOM_ID: index-header
+   :END:
+
+#+INCLUDE: "../../CONTRIBUTING.org" :minlevel 1
+
+** [[file:index.org][Index]]
+   :PROPERTIES:
+   :CUSTOM_ID: index-footer
+   :END:

@@ -1,0 +1,18 @@
+#+INCLUDE: "../../README.org" :minlevel 1
+
+** API Documentation
+   :PROPERTIES:
+   :CUSTOM_ID: edoc
+   :END:
+
+Generated edoc is available [[file:edoc/index.html][here]]. The only module is [[file:edoc/re2.html][re2]].
+
+** [[file:contributing.org][Contributing to re2]]
+   :PROPERTIES:
+   :CUSTOM_ID: contributing-to-re2
+   :END:
+
+** [[file:changelog.org][Change Log]]
+   :PROPERTIES:
+   :CUSTOM_ID: changelog
+   :END:

@@ -1,4 +1,4 @@
-.PHONY: all dev clean doc deps test plt dialyze check eunit
+.PHONY: all dev clean edoc deps test plt dialyze check eunit pages
 
 REBAR=`sh -c "PATH='$(PATH)':dev which rebar||dev/getrebar||echo false"`
 
@@ -11,11 +11,19 @@ debug:
 dev:
 	@$(REBAR) compile -DDEV
 
-doc:
+pages: edoc
+	@test -d pages/out/edoc && rm pages/out/edoc/* || mkdir -p pages/out/edoc
+	@cp doc/*.html doc/*.css doc/*.png pages/out/edoc
+	@(cd pages && ./export)
+	@rm -f pages/out/*.html~
+
+edoc:
 	@$(REBAR) doc
 
 clean:
 	@$(REBAR) clean
+	@rm -fr pages/out/edoc
+	@rm -f pages/out/*.html
 
 distclean: clean
 	@rm -fr c_src/re2
