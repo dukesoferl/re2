@@ -14,11 +14,11 @@
 
 variables:
   GIT_DEPTH: "3"
-  DEFAULT_IMAGE: erlang:20-alpine
+  DEFAULT_IMAGE: erlang:20
 
 pages:
   stage: deploy
-  image: $DEFAULT_IMAGE
+  image: erlang:20-alpine
   before_script:
     - apk add --update make emacs texinfo ca-certificates curl
     - update-ca-certificates
