@@ -1,2 +1,11 @@
-#+OPTIONS: ^:nil
+** [[file:index.org][Index]]
+   :PROPERTIES:
+   :CUSTOM_ID: index-header
+   :END:
+
 #+INCLUDE: "../../CHANGELOG.org" :minlevel 1
+
+** [[file:index.org][Index]]
+   :PROPERTIES:
+   :CUSTOM_ID: index-footer
+   :END:
