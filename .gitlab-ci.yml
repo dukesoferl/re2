@@ -47,7 +47,7 @@ cache:
     # Even though the tree is clean, we call this here to make sure
     # the cached re2 upstream clone is clean as well.
     - make clean
-    - make all doc deps
+    - make all edoc deps
     - rm .rebar/erlcinfo
 
 .artifact_paths_template: &artifact_paths_defitinion
