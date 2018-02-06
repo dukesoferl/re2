@@ -82,7 +82,7 @@ load_nif() ->
 -type replace_option() :: 'global'.
 -type replace_result() :: binary() | {'error', atom()} | 'error'.
 
-%% @doc Equivalent to calling ``compile(Regex, [])''.
+%% @doc Same as calling ``compile(Regex, [])''.
 -spec compile(Regex::plain_regex()) -> compile_result().
 compile(_) ->
     ?nif_stub.
