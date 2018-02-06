@@ -52,14 +52,14 @@ load_nif() ->
 %%    rightly complain about that as follows:
 %%    Warning: opaque type compiled_regex() is not exported
 
--type uncompiled_regex() :: iodata().
+-type plain_regex() :: iodata().
 -type compiled_regex() :: any().
 %% compiled_regex/0 is an opaque datatype containing a compiled regex created
 %% by enif_make_resource(). Resources are totally opaque, which means the
 %% actual type is undefined and you can make no assumption to pattern match
 %% the compiled regex.
 -type subject() :: iodata().
--type regex() :: uncompiled_regex() | compiled_regex().
+-type regex() :: plain_regex() | compiled_regex().
 -type replacement() :: iodata().
 
 -type match_option() :: 'caseless' | {'offset', non_neg_integer()}
@@ -72,40 +72,64 @@ load_nif() ->
 -type match_result() :: 'match' | 'nomatch' | {'match', list()}
                       | {'error', atom()}.
 
--type compile_error() :: {'error', {atom(), string(), string()}}.
+-type compile_error_str() :: string().
+-type compile_error_arg() :: string().
+-type compile_error() :: {'error', atom()}
+                       | {atom(), re2_error_str(), re2_error_arg()}.
 -type compile_option() :: 'caseless' | {'max_mem', non_neg_integer()}.
 -type compile_result() :: {'ok', compiled_regex()} | compile_error().
 
 -type replace_option() :: 'global'.
 -type replace_result() :: binary() | {'error', atom()} | 'error'.
 
--spec compile(uncompiled_regex()) -> compile_result().
+%% @doc Equivalent to calling ``compile(Regex, [])''.
+-spec compile(Regex::plain_regex()) -> compile_result().
 compile(_) ->
     ?nif_stub.
 
--spec compile(uncompiled_regex(), [compile_option()]) -> compile_result().
+%% @doc Compile regex for reuse.
+%% ```
+%% 1> {ok, RE} = re2:compile("Foo.*Bar", [caseless]).
+%% {ok,#Ref<0.3540238268.2241986568.233969>}
+%% 2> re2:match("Foo-baz-bAr", RE).
+%% {match,[<<"Foo-baz-bAr">>]}'''
+-spec compile(Regex::plain_regex(),
+              Options::[compile_option()]) -> compile_result().
 compile(_,_) ->
     ?nif_stub.
 
--spec match(subject(), regex()) -> match_result().
+%% @doc Same as calling ``match(Subject, Regex, [])''.
+-spec match(Subject::subject(), Regex::regex()) -> match_result().
 match(_,_) ->
     ?nif_stub.
 
--spec match(subject(), regex(), [match_option()]) -> match_result().
+%% @doc Execute regular expression matching on subject string.
+%% ```
+%% > re2:match("Bar-foo-Baz", "FoO", [caseless]).
+%% {match,[<<"foo">>]}'''
+-spec match(Subject::subject(), Regex::regex(),
+            Options::[match_option()]) -> match_result().
 match(_,_,_) ->
     ?nif_stub.
 
--spec replace(subject(), regex(), replacement()) -> replace_result().
+%% @doc Same as calling ``replace(Subject, Regex, Replacement, [])''.
+-spec replace(Subject::subject(), Regex::regex(),
+              Replacement::replacement()) -> replace_result().
 replace(_,_,_) ->
     ?nif_stub.
 
--spec replace(subject(), regex(), replacement(),
-              [replace_option()]) -> replace_result().
+%% @doc Replace the matched part of the subject string with Replacement.
+%% ```
+%% 1> re2:replace("Baz-foo-Bar", "foo", "FoO", []).
+%% <<"Baz-FoO-Bar">>'''
+-spec replace(Subject::subject(), Regex::regex(), Replacement::replacement(),
+              Options::[replace_option()]) -> replace_result().
 replace(_,_,_,_) ->
     ?nif_stub.
 
 
 %% Development test functions.
+%% @private
 -ifdef(DEV).
 l(0) ->
     ok;
