@@ -75,7 +75,7 @@ load_nif() ->
 -type compile_error_str() :: string().
 -type compile_error_arg() :: string().
 -type compile_error() :: {'error', atom()}
-                       | {atom(), re2_error_str(), re2_error_arg()}.
+                       | {atom(), compile_error_str(), compile_error_arg()}.
 -type compile_option() :: 'caseless' | {'max_mem', non_neg_integer()}.
 -type compile_result() :: {'ok', compiled_regex()} | compile_error().
 
