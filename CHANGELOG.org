@@ -18,6 +18,8 @@
     :END:
 
 - Switch RE2 default revision to 2018-02-01.
+- Implement GitLab Pages.
+- Improve API documentation.
 
 ** 1.8.1 - 2018-01-01
    :PROPERTIES:
