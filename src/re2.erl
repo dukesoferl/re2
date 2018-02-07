@@ -105,7 +105,7 @@ match(_,_) ->
 
 %% @doc Execute regular expression matching on subject string.
 %% ```
-%% > re2:match("Bar-foo-Baz", "FoO", [caseless]).
+%% 1> re2:match("Bar-foo-Baz", "FoO", [caseless]).
 %% {match,[<<"foo">>]}'''
 -spec match(Subject::subject(), Regex::regex(),
             Options::[match_option()]) -> match_result().
