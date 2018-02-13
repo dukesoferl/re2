@@ -7,7 +7,7 @@
   :END:
 
 
-** 1.8.2 - 2018-??-??
+** 1.8.2 - 2018-02-13
    :PROPERTIES:
    :CUSTOM_ID: section
    :END:
