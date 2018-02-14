@@ -227,7 +227,7 @@ Config0 = case IsRebar3 of
                   CommonOpts() ++ Rebar2ExclusiveOpts()
           end.
 
-TriqDep = [{triq, ".*", {git, "https://github.com/triqng/triq"}}].
+TriqDep = [{triq, ".*", {git, "https://gitlab.com/triq/triq.git"}}].
 Config = case os:getenv("RE2_TEST_DEPS") of
              false ->
                  Config0;
