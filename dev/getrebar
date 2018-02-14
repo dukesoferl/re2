@@ -71,12 +71,12 @@ start_apps() ->
 configure_http() ->
     case os:getenv("http_proxy") of
         "http://" ++ Proxy ->
-            [Host, Port] = strtokens(Proxy, ":"),
+            [Host, Port] = strtok(Proxy, ":"),
             httpc:set_options([{proxy, {Host, Port}}]);
         _ -> ok
     end.
 
-strtokens(Str, SepList) ->
+strtok(Str, SepList) ->
     case erlang:is_exported(string, lexemes, 2) of
         true -> string:lexemes(Str, SepList);
         false -> apply(string, tokens, [Str, SepList])
