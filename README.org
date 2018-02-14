@@ -34,7 +34,7 @@ the C++ API. It would be easy to add =run/{2,3}=, if that's needed.
 To use =re2=, you can add it as a project dependency and let your
 package manager of choice handle it:
 
-rebar.config: ={re2, "1.*"}=
+rebar.config: ={deps, [re2]}=
 
 erlang.mk: =DEPS = re2=
 
