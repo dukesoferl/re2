@@ -37,8 +37,7 @@ found(Rebar) ->
 %%
 %% Internal funs
 %%
-rebar_bin_url() ->
-    "https://raw.github.com/wiki/rebar/rebar/rebar".
+-define(REBAR_BIN_URL, "https://raw.github.com/wiki/rebar/rebar/rebar").
 
 obtain(bin) ->
     SupDir = filename:dirname(escript:script_name()),
@@ -47,7 +46,7 @@ obtain(bin) ->
         true -> {ok, Rebar};
         false ->
             ok = idelete(Rebar),
-            try download(rebar_bin_url(), Rebar) of
+            try download(?REBAR_BIN_URL, Rebar) of
                 ok ->
                     case is_escript(Rebar) of
                         true ->
@@ -72,9 +71,15 @@ start_apps() ->
 configure_http() ->
     case os:getenv("http_proxy") of
         "http://" ++ Proxy ->
-            [Host, Port] = string:tokens(Proxy, ":"),
+            [Host, Port] = strtokens(Proxy, ":"),
             httpc:set_options([{proxy, {Host, Port}}]);
         _ -> ok
+    end.
+
+strtokens(Str, SepList) ->
+    case erlang:is_exported(string, lexemes, 2) of
+        true -> string:lexemes(Str, SepList);
+        false -> apply(string, tokens, [Str, SepList])
     end.
 
 idelete(File) ->
