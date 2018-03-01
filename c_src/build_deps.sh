@@ -20,13 +20,13 @@ case "$1" in
     RE2_REV=${RE2_REV:-2018-02-01}
     case $(git config --get remote.origin.url) in
         git@github.com*|https://github.com*|git://github.com*)
-            MAYBE_RE2_URL=https://github.com/google/re2
+            DEFAULT_RE2_URL=https://github.com/google/re2
             ;;
         *)
-            MAYBE_RE2_URL=https://code.googlesource.com/re2
+            DEFAULT_RE2_URL=https://code.googlesource.com/re2
             ;;
     esac
-    RE2_URL=${RE2_URL:-$MAYBE_RE2_URL}
+    RE2_URL=${RE2_URL:-$DEFAULT_RE2_URL}
     test -d re2 || git clone $RE2_URL re2
     (cd re2 && git fetch --all && git checkout $RE2_REV)
 
