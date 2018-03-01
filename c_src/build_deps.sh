@@ -20,13 +20,14 @@ case "$1" in
     RE2_REV=${RE2_REV:-2018-03-01}
     case $(git config --get remote.origin.url) in
         git@github.com*|https://github.com*|git://github.com*)
-            RE2_URL=https://github.com/google/re2
+            RE2_DEFAULT_URL=https://github.com/google/re2
             ;;
         *)
-            RE2_URL=https://code.googlesource.com/re2
+            RE2_DEFAULT_URL=https://code.googlesource.com/re2
             ;;
     esac
-    test -d re2 || git clone $RE2_URL
+    RE2_URL=${RE2_URL:-$RE2_DEFAULT_URL}
+    test -d re2 || git clone $RE2_URL re2
     (cd re2 && git fetch --all && git checkout $RE2_REV)
 
     CXXFLAGS="-Wall -O3 -fPIC -pthread -std=c++11 -m$ERLANG_ARCH"

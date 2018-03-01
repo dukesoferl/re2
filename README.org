@@ -80,6 +80,11 @@ and the library can not be found, it will fall back to a local copy
 fetched and built, when not using system RE2, you can do so by setting
 =RE2_REV= to a git rev.
 
+By default, RE2 upstream source is fetched from the Google remote.
+If for some reason you need to fetch the upstream source from some
+other git repository, you can do so by setting the =RE2_URL= environment
+variable to a different git url.
+
 Unless otherwise noted, the [[https://github.com/google/re2][RE2]]
 source files are distributed under the BSD-style license found in
 =c_src/re2/LICENSE=.
