@@ -78,7 +78,7 @@ on the system, you can set the env var =SYSTEM_RE2=1=. If you do that
 and the library can not be found, it will fall back to a local copy
 (=c_src/re2=). Also, if you want to override the RE2 version that is
 fetched and built, when not using system RE2, you can do so by setting
-=RE2_REV= to a git rev.   By default, the re2 upstream code will be
+=RE2_REV= to a git rev.   By default, the RE2 upstream code will be
 fetched from =https://github.com/google/re2= or in some cases
 =https://code.googlesource.com/re2=, however, if you need to fetch the
 upstream source from some other git repository, you can do so by
