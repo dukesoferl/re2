@@ -26,7 +26,7 @@
       (concat
         "<style type=\"text/css\">\n"
         "html {font-family: serif;}\n"
-        "body {margin: auto; max-width: 45em; background: #9FA590;}\n"
+        "body {margin: auto; max-width: 45em; background: #b3b9af;}\n"
         "pre {border: 1px solid #555555; box-shadow: none;}\n"
         "</style>"))
 
