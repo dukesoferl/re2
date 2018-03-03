@@ -1,24 +1,22 @@
 {application, re2,
- [
-  {description, "Erlang NIF bindings for the RE2 regex library"},
-  {vsn, "1.8.2"},
-  {modules, [re2]},
-  {registered, []},
-  {applications,
-   [
-    kernel,
-    stdlib
-   ]},
-  {env, []},
-
-  {maintainers, ["Tuncer Ayaz"]},
-  {licenses, ["BSD"]},
-  {links, [
-           {"Source", "https://github.com/tuncer/re2"},
-           {"RE2 library", "https://github.com/google/re2"}
-          ]},
-  {exclude_files, [
-                   "c_src/re2",
-                   "c_src/re2_nif.d"
+ [ {description, "Erlang NIF bindings for the RE2 regex library"}
+ , {vsn, "1.8.3"}
+ , {modules, [re2]}
+ , {registered, []}
+ , {applications, [ kernel
+                  , stdlib
                   ]}
+ , {env, []}
+
+ , {maintainers, ["Tuncer Ayaz"]}
+ , {licenses, ["BSD"]}
+ , {links, [ {"Homepage", "https://tuncer.gitlab.io/re2erl"}
+           , {"GitHub", "https://github.com/tuncer/re2"}
+           , {"GitLab", "https://gitlab.com/tuncer/re2erl"}
+           , {"RE2 library GitHub", "https://github.com/google/re2"}
+           , {"RE2 library Google Source", "https://code.googlesource.com/re2"}
+           ]}
+ , {exclude_files, [ "c_src/re2"
+                   , "c_src/re2_nif.d"
+                   ]}
  ]}.

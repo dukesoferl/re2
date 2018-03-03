@@ -6,6 +6,19 @@
   :CUSTOM_ID: change-log
   :END:
 
+** 1.8.3 - 2018-03-03
+   :PROPERTIES:
+   :CUSTOM_ID: section
+   :END:
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed
+    :END:
+
+- Switch RE2 default revision to 2018-03-01.
+- Adjust GitLab pages background color.
+- Allow overriding RE2 git remote (Thanks Anthony Molinaro).
 
 ** 1.8.2 - 2018-02-13
    :PROPERTIES:
