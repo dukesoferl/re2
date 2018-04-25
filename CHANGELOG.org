@@ -6,10 +6,29 @@
   :CUSTOM_ID: change-log
   :END:
 
+** 1.8.4 - 2018-0?-??
+   :PROPERTIES:
+   :CUSTOM_ID: section
+   :END:
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed
+    :END:
+
+- Migrate to rebar3.
+
 ** 1.8.3 - 2018-03-03
    :PROPERTIES:
    :CUSTOM_ID: section
    :END:
+
+*** Fixed
+    :PROPERTIES:
+    :CUSTOM_ID: fixed
+    :END:
+
+- dev/getrebar: fix OTP 21 string API compatibility
 
 *** Changed
     :PROPERTIES:

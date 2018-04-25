@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2018 Tuncer Ayaz
+# Copyright 2016-2018 Tuncer Ayaz
 #
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,11 +14,11 @@
 
 variables:
   GIT_DEPTH: "3"
-  DEFAULT_IMAGE: erlang:20
+  DEFAULT_IMAGE: erlang:20-alpine
 
 pages:
   stage: deploy
-  image: erlang:20-alpine
+  image: $DEFAULT_IMAGE
   before_script:
     - apk add --update make emacs texinfo ca-certificates curl
     - update-ca-certificates
@@ -37,18 +37,14 @@ pages:
 cache:
   key: $CI_PROJECT_PATH
   paths:
-    - c_src/re2
-    - .rebar/re2_*_plt
+    - _build/default/rebar3_*_plt
 
 .build_job_template: &build_job_definition
   stage: build
   image: $DEFAULT_IMAGE
   script:
-    # Even though the tree is clean, we call this here to make sure
-    # the cached re2 upstream clone is clean as well.
-    - make clean
-    - make all edoc deps
-    - rm .rebar/erlcinfo
+    - apk add --update make g++ clang git
+    - make clean all edoc rebar3-ebin-copy
 
 .artifact_paths_template: &artifact_paths_defitinion
   paths:
@@ -61,8 +57,7 @@ default-build:
   artifacts:
     name: "$CI_PROJECT_NAME-ci-${CI_BUILD_REF_NAME}"
     <<: *artifact_paths_defitinion
-    # Temporary artifacts for non-release builds are removed after a month
-    # because they are just for use in test jobs.
+    # Temporary artifacts for non-release builds are removed after a month.
     expire_in: 1 month
 
 release:
@@ -73,33 +68,53 @@ release:
   only:
     - tags
 
+.test_job_template_non_alpine: &test_job_definition_non_alpine
+  stage: test
+  script:
+    - make clean all test
+
 .test_job_template: &test_job_definition
   stage: test
   script:
-    - make
-    - make deps
-    - make test
+    - apk add --update make g++ clang git
+    - make clean all test
 
-test:17:
-  <<: *test_job_definition
-  image: erlang:17
-
-test:18:
-  <<: *test_job_definition
-  image: erlang:18
-
-test:19:
-  <<: *test_job_definition
-  image: erlang:19
-
-test:20:
+test:20-gcc:
   <<: *test_job_definition
   image: $DEFAULT_IMAGE
+
+test:20-clang:
+  <<: *test_job_definition
+  image: $DEFAULT_IMAGE
+  variables:
+    CXX: "clang++"
+
+test:20-clang-debug:
+  stage: test
+  image: $DEFAULT_IMAGE
+  variables:
+    CXX: "clang++"
+  script:
+    - apk add --update make g++ clang git
+    - make clean debug
+    # Verify that debug code is enabled
+    - dev/l.sh 128
+
+test:19:
+  <<: *test_job_definition_non_alpine
+  image: erlang:19
+
+test:18:
+  <<: *test_job_definition_non_alpine
+  image: erlang:18
+
+test:17:
+  <<: *test_job_definition_non_alpine
+  image: erlang:17
 
 test:dialyze:
   stage: test
   image: $DEFAULT_IMAGE
   script:
-    - make
-    - make plt
-    - make dialyze
+    - apk add --update make g++ git
+    - make clean all dialyze

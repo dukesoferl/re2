@@ -20,7 +20,7 @@
 -include_lib("kernel/include/file.hrl").
 
 main(_) ->
-    case os:find_executable("rebar") of
+    case os:find_executable("rebar3") of
         false ->
             start_apps(),
             case obtain(bin) of
@@ -37,11 +37,11 @@ found(Rebar) ->
 %%
 %% Internal funs
 %%
--define(REBAR_BIN_URL, "https://raw.github.com/wiki/rebar/rebar/rebar").
+-define(REBAR_BIN_URL, "https://s3.amazonaws.com/rebar3/rebar3").
 
 obtain(bin) ->
     SupDir = filename:dirname(escript:script_name()),
-    Rebar = SupDir++"/rebar",
+    Rebar = SupDir++"/rebar3",
     case is_escript(Rebar) of
         true -> {ok, Rebar};
         false ->

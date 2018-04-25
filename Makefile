@@ -1,15 +1,12 @@
-.PHONY: all dev clean edoc deps test plt dialyze check eunit pages
+.PHONY: all clean debug edoc test dialyze check eunit pages rebar3-ebin-copy
 
-REBAR=`sh -c "PATH='$(PATH)':dev which rebar||dev/getrebar||echo false"`
+REBAR=`sh -c "PATH='$(PATH)':dev which rebar3||dev/getrebar||echo false"`
 
 all:
 	@$(REBAR) compile
 
 debug:
-	@sh -c "DEBUG=1 $(REBAR) compile -DDEV -DDEBUG"
-
-dev:
-	@$(REBAR) compile -DDEV
+	@sh -c "RE2_DEBUG=1 $(REBAR) as debug compile"
 
 pages: edoc
 	@test -d pages/out/edoc && rm pages/out/edoc/* || mkdir -p pages/out/edoc
@@ -18,7 +15,7 @@ pages: edoc
 	@rm -f pages/out/*.html~
 
 edoc:
-	@$(REBAR) doc
+	@$(REBAR) edoc
 
 clean:
 	@$(REBAR) clean
@@ -30,16 +27,13 @@ distclean: clean
 
 check: test dialyze
 
-deps:
-	@sh -c "RE2_TEST_DEPS=1 $(REBAR) prepare-deps"
-
 test: eunit
 
 eunit:
-	@sh -c "RE2_TEST_DEPS=1 $(REBAR) eunit"
-
-plt:
-	@sh -c "$(REBAR) -vv check-plt || $(REBAR) -vv build-plt"
+	@$(REBAR) eunit
 
 dialyze:
-	@$(REBAR) -vv dialyze
+	@$(REBAR) dialyzer
+
+rebar3-ebin-copy:
+	@cp -r _build/default/lib/re2/ebin .

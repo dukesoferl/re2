@@ -10,7 +10,7 @@ case "$1" in
     ;;
 
   *)
-    if [ x"$DEBUG" = x"1" ]; then
+    if [ x"$RE2_DEBUG" = x"1" ]; then
         LIBRE2="obj/dbg/libre2.a"
     else
         LIBRE2="obj/libre2.a"

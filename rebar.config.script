@@ -1,7 +1,7 @@
 %% -*- mode: erlang;erlang-indent-level: 4;indent-tabs-mode: nil -*-
 %% ex: ts=4 sw=4 ft=erlang et
 %%
-%% Copyright (c) 2016-2018 Tuncer Ayaz. All Rights Reserved.
+%% Copyright 2016-2018 Tuncer Ayaz
 %%
 %% Permission to use, copy, modify, and distribute this software for any
 %% purpose with or without fee is hereby granted, provided that the above
@@ -24,72 +24,27 @@ FindLibByWC = fun(WC, Opt1, Opt2) ->
                              , "/lib64/"
                              , "/lib/"
                              ],
-                      case lists:flatmap(fun(D) ->
-                                                   filelib:wildcard(D ++ WC)
-                                         end,
-                                         Dirs)
+                      case lists:flatmap(
+                             fun(D) ->
+                                     filelib:wildcard(D ++ WC)
+                             end,
+                             Dirs)
                       of
                           [] -> Opt2;
                           [LibDir|_] -> {filename:dirname(LibDir), Opt1}
                       end
               end.
 
-%% If "c++ --version" identifies itself as clang, and there is libc++, use
-%% that, otherwise default to libstdc++.
-
-IsClang = fun() ->
-                  Vsn = os:cmd("c++ --version"),
-                  case re:run(Vsn, "clang", [{capture, none}]) of
-                      match -> clang;
-                      nomatch -> other_compiler
-                  end
-          end.
-
-LibCPP = "c++".
-LibStdCPP = "stdc++".
-
-MaybeUseLibCPP = fun() ->
-                         case FindLibByWC("libc++*.{so,dylib}",
-                                          LibCPP,
-                                          LibStdCPP) of
-                             {_LibDir, LibCPP} -> LibCPP;
-                             LibStdCPP -> LibStdCPP
-                         end
-                 end.
-
-WhichCPPLib = fun() ->
-                      case IsClang() of
-                          clang ->
-                              MaybeUseLibCPP();
-                          _ ->
-                              LibStdCPP
-                      end
-              end.
-
-%% Only look for libc++ if rebar is older than 2.6.4. If it's new
-%% enough, we can omit the extra LDFLAGS, because CXX will be used in
-%% the link command.
-LDFLAGS = case application:get_key(rebar, vsn) of
-              {ok, Rebar2Vsn} when Rebar2Vsn < "2.6.4" ->
-                  [{"(linux|freebsd|solaris)",
-                    "LDFLAGS", "$LDFLAGS -l" ++ WhichCPPLib()}];
-              _ ->
-                  %% If undefined, Elixir's mix is evaluating
-                  %% rebar.config.script, and since it defaults to using
-                  %% rebar3, the port_compiler plugin will be new enough. If
-                  %% defined, Rebar2Vsn will be newer than 2.6.4 and also good
-                  %% enough.
-                  []
-          end.
-
 LocalIncDir = "-Ic_src/re2".
 
-%% Find re2 include dir on system.
+%% Find RE2 include dir on system.
 Re2IncDir = fun() ->
+                    UsrLocalH = "/usr/local/include/re2/re2.h",
+                    UsrH = "/usr/include/re2/re2.h",
                     %% Get include dir which contains the re2/ dir.
                     Hs = [filename:dirname(filename:dirname(F)) ||
-                          F <- filelib:wildcard("/usr/local/include/re2/re2.h")
-                          ++ filelib:wildcard("/usr/include/re2/re2.h")],
+                             F <- filelib:wildcard(UsrLocalH)
+                                 ++ filelib:wildcard(UsrH)],
                     case Hs of
                         [] -> not_found;
                         [IncDir|_] -> "-I" ++ IncDir
@@ -97,18 +52,14 @@ Re2IncDir = fun() ->
             end.
 
 FindRe2 = fun(SysLib, LocalLib) ->
-                  %% If there is libre2.so use it, otherwise enable fetching
-                  %% and building of a local re2 copy.
-                  %% We could try to test compile a simple program which makes
-                  %% use of re2, but that would needlessly complicate the build
-                  %% process due to the requirement of caching configure
-                  %% results.
+                  %% If there is libre2.so, use it, otherwise enable fetching
+                  %% and building a local RE2 copy.
                   Lib = FindLibByWC("libre2.{so,dylib}", SysLib, LocalLib),
                   IncDir = Re2IncDir(),
                   case {IncDir, Lib} of
                       %% re2.h not found, and even though libre2 might
                       %% exist, we need the headers. Therefore, fall back to
-                      %% local re2.
+                      %% local RE2.
                       {not_found, {_LibDir, SysLib}} ->
                           {LocalIncDir, LocalLib};
 
@@ -117,18 +68,18 @@ FindRe2 = fun(SysLib, LocalLib) ->
                           {LocalIncDir, LocalLib};
 
                       %% If re2.h is found, but there is no libre2.so, which
-                      %% should never be the case, fall back to local re2.
+                      %% should never be the case, fall back to local RE2.
                       {IncDir, LocalLib} ->
                           {LocalIncDir, LocalLib};
 
-                      %% If re2.h _and_ libre2.so are found, we can use
-                      %% system re2.
+                      %% If re2.h and libre2.so are found, we can use
+                      %% system RE2.
                       {IncDir, {LibDir, SysLib}=Sys} ->
                           {IncDir, Sys}
                   end
           end.
 
-{DebugFlags, LocalRe2Archive} = case os:getenv("DEBUG") of
+{DebugFlags, LocalRe2Archive} = case os:getenv("RE2_DEBUG") of
                                     false ->
                                         {[], "c_src/re2/obj/libre2.a"};
                                     _ ->
@@ -138,14 +89,12 @@ FindRe2 = fun(SysLib, LocalLib) ->
 WhichRe2 = fun() ->
                    SysRe2Lib = {sys, "-lre2"},
                    LocalRe2Lib = {local, LocalRe2Archive},
-                   %% If env var SYSTEM_RE2 is set, try to find system re2 and
-                   %% only fall back to local re2, if it cannot be found in the
+                   %% If env var SYSTEM_RE2 is set, try to find system RE2 and
+                   %% only fall back to local RE2 if it cannot be found in the
                    %% system. Ideally, the default should be the other way
                    %% around, but it's likely this would disrupt too many
                    %% users' environments due to the requirement of having
-                   %% libre2.so available. Eventually, the default should be
-                   %% changed to give an option to skip detection of a system
-                   %% re2.
+                   %% libre2.so available.
                    case os:getenv("SYSTEM_RE2") of
                        false ->
                            {LocalIncDir, LocalRe2Lib};
@@ -154,99 +103,75 @@ WhichRe2 = fun() ->
                    end
            end.
 
-IsRebar3 = erlang:function_exported(rebar3, main, 1),
+PortOpts = fun() ->
+                   PortSpecs = {port_specs,
+                                [
+                                 {"priv/re2_nif.so", ["c_src/re2_nif.cc"]}
+                                ]},
+                   BaseCFLAGS = "$DRV_CFLAGS -O3 -Wall -Wextra -std=c++11 "
+                       ++ DebugFlags ++ " ",
+                   Hooks = [ {pre_hooks,
+                              [{{pc, compile}, "c_src/build_deps.sh"}]}
+                           , {post_hooks,
+                              [{{pc, clean}, "c_src/build_deps.sh clean"}]}
+                           ],
+                   case WhichRe2() of
+                       {Inc, {LibDir, {sys, Lib}}} ->
+                           %% Use existing (system) RE2
+                           [ PortSpecs
+                           , {port_env,
+                              [ {"DRV_CFLAGS",  BaseCFLAGS ++ Inc}
+                              , {"DRV_LDFLAGS",
+                                 "$DRV_LDFLAGS -L" ++ LibDir
+                                 ++ " " ++ Lib}
+                              ]}
+                           ];
+                       {Inc, {local, Lib}} ->
+                           %% Use local RE2, which is fetched
+                           %% and built by a shell hook.
+                           PortCompilerSettings =
+                               [ PortSpecs
+                               , {port_env,
+                                  [ {"DRV_CFLAGS",  BaseCFLAGS ++ Inc}
+                                  , {"DRV_LDFLAGS",
+                                     "$DRV_LDFLAGS " ++ Lib}
+                                  ]}
+                               ],
+                           PortCompilerSettings ++ Hooks
+                   end
+           end.
 
-Hooks = fun() ->
-                case IsRebar3 of
-                    true ->
-                        [ {pre_hooks,
-                           [{{pc, compile}, "c_src/build_deps.sh"}]}
-                        , {post_hooks,
-                           [{{pc, clean}, "c_src/build_deps.sh clean"}]}
-                        ];
-                    false ->
-                        [ {pre_hooks, [{compile, "c_src/build_deps.sh"}]}
-                        , {post_hooks, [{clean, "c_src/build_deps.sh clean"}]}
-                        ]
-                end
-        end,
+PCDep = {pc, {git, "https://github.com/blt/port_compiler", {tag, "v1.7.1"}}}.
+%% PCDep = pc.
+TestDeps = [{deps, [{triq, ".*",
+                     {git, "https://gitlab.com/triq/triq.git",
+                      {branch, "master"}}}] }].
+%% TestDeps = [{deps, [triq]}].
 
-CommonOpts = fun() ->
-                     PortSpecs = {port_specs,
-                                  [
-                                   {"priv/re2_nif.so", ["c_src/re2_nif.cpp"]}
-                                  ]},
-                     BaseCFLAGS = "$DRV_CFLAGS -O3 -Wall -Wextra -std=c++11 "
-                         ++ DebugFlags ++ " ",
-                     case WhichRe2() of
-                         {Inc, {LibDir, {sys, Lib}}} ->
-                             %% Use already existing (system) re2
-                             [ PortSpecs
-                             , {port_env,
-                                LDFLAGS ++
-                                    [ {"DRV_CFLAGS",  BaseCFLAGS ++ Inc}
-                                    , {"DRV_LDFLAGS",
-                                       "$DRV_LDFLAGS -L" ++ LibDir
-                                       ++ " " ++ Lib}
-                                    ]}
-                             ];
-                         {Inc, {local, Lib}} ->
-                             %% Use local re2, which is fetched and built by a
-                             %% shell hook.
-                             PortCompilerSettings =
-                                 [ PortSpecs
-                                 , {port_env,
-                                    LDFLAGS ++
-                                        [ {"DRV_CFLAGS",  BaseCFLAGS ++ Inc}
-                                        , {"DRV_LDFLAGS",
-                                           "$DRV_LDFLAGS " ++ Lib}
-                                        ]}
-                                 ],
-                             PortCompilerSettings ++ Hooks()
-                     end
-             end.
+GeneralOpts = [ {plugins, [PCDep]}
+              , {artifacts, ["priv/re2_nif.so"]}
+              , {pc_clang_db, true}
+              , {provider_hooks,
+                 [ {pre,
+                    [ {compile, {pc, compile}}
+                    , {clean, {pc, clean}}
+                    ]}
+                 ]}
+              , {eunit_opts, [verbose]}
+              , {profiles
+                , [ {test, TestDeps}
+                  , {debug
+                    , [ {port_env, [{"DRV_CFLAGS", "$DRV_CFLAGS -DDEBUG"}]}
+                      , {erl_opts, [{d, 'DEV'}, {d, 'DEBUG'}]}
+                      ]}
+                  ]}
+              ].
 
-Rebar2ExclusiveOpts = fun() -> [{qc_opts, [{qc_mod, triq}]}] end.
-
-Rebar3ExclusiveOpts = fun() ->
-                              [ {plugins, [pc]}
-                              , {artifacts, ["priv/re2_nif.so"]}
-                              , {provider_hooks,
-                                 [ {pre,
-                                    [ {compile, {pc, compile}}
-                                    , {clean, {pc, clean}}
-                                    ]}
-                                 ]}
-                              ]
-                      end.
-
-Config0 = case IsRebar3 of
-              true ->
-                  CommonOpts() ++ Rebar3ExclusiveOpts();
-              false ->
-                  CommonOpts() ++ Rebar2ExclusiveOpts()
-          end.
-
-TriqDep = [{triq, ".*", {git, "https://gitlab.com/triq/triq.git"}}].
-Config = case os:getenv("RE2_TEST_DEPS") of
-             false ->
-                 Config0;
-             _ ->
-                 case lists:keysearch(deps, 1, Config0) of
-                     {value, {deps, Deps}} ->
-                         NDeps = Deps ++ TriqDep,
-                         lists:keyreplace(deps, 1, Config0, {deps, NDeps});
-                     false ->
-                         Config0 ++ [{deps, TriqDep}]
-                 end
-         end.
-
-%% If env var DEBUG_CONFIG is set, log config term.
+Config = GeneralOpts ++ PortOpts().
 case os:getenv("DEBUG_CONFIG") of
     false ->
         Config;
     _ ->
-        C = Config,
-        io:format(standard_error, "rebar config:~n~p~n", [C]),
-        C
+        io:format(standard_error, "rebar config:~n~p~n", [Config]),
+        Config
 end.

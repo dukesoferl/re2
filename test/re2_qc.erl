@@ -35,7 +35,7 @@ prop_string() ->
     ?FORALL(Str, ?LET(Size, choose(1,64), unicode_string(Size)),
             begin
                 S = binary_str(Str),
-                match =:= re2:match(S, "^.+$", [{capture, none}])
+                match =:= re2:match(S, ".*", [{capture, none}])
             end).
 
 -define(REGEXES,
