@@ -20,7 +20,7 @@ pages:
   stage: deploy
   image: $DEFAULT_IMAGE
   before_script:
-    - apk add --update make emacs texinfo ca-certificates curl
+    - apk add --update make emacs texinfo ca-certificates curl g++ clang git
     - update-ca-certificates
     - cd pages
     - ./install
