@@ -16,6 +16,7 @@
     :CUSTOM_ID: changed
     :END:
 
+- Add =run/{2,3}= (alias for =match/{2,3}=).
 - Migrate to rebar3.
 - Switch RE2 default revision to 2018-04-01.
 

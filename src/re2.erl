@@ -12,6 +12,8 @@
         , compile/2
         , match/2
         , match/3
+        , run/2
+        , run/3
         , replace/3
         , replace/4
         ]).
@@ -110,6 +112,17 @@ match(_,_) ->
 -spec match(Subject::subject(), Regex::regex(),
             Options::[match_option()]) -> match_result().
 match(_,_,_) ->
+    ?nif_stub.
+
+%% @doc Alias for ``match/2''.
+-spec run(Subject::subject(), Regex::regex()) -> match_result().
+run(_,_) ->
+    ?nif_stub.
+
+%% @doc Alias for ``match/3''.
+-spec run(Subject::subject(), Regex::regex(),
+          Options::[match_option()]) -> match_result().
+run(_,_,_) ->
     ?nif_stub.
 
 %% @doc Same as calling ``replace(Subject, Regex, Replacement, [])''.
