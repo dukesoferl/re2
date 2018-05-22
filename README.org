@@ -48,11 +48,9 @@ source into your Erlang installation by adding it in one of your
 =$ERL_LIBS= paths. So, it's either somewhere like
 =/usr/lib/erlang/lib= or =$HOME/.erl=.
 
-You can either download a tagged release from
-=https://github.com/tuncer/re2/releases= and extract that or clone the
-git repo =https://github.com/tuncer/re2= in the target directory. Once
-that's done, cd into the directory and run =rebar3 compile= or just
-=make=.
+You can either download a [[https://github.com/tuncer/re2/releases][tagged release]] or clone the [[https://github.com/tuncer/re2][git repo]] in the
+target directory. Once that's done, cd into the directory and run
+=rebar3 compile= or just =make=.
 
 Now, if you start =erl=, you should be able to call functions from the
 =re2= module.
