@@ -97,5 +97,5 @@ variable to a different git url.
 ** License
 
 Unless otherwise noted, the [[https://github.com/google/re2][RE2]] source files are distributed under the
-BSD-style license found in [[https://raw.githubusercontent.com/google/re2/master/LICENSE][=c_src/re2/LICENSE=]]. The same [[https://raw.githubusercontent.com/tuncer/re2/master/LICENSE][license]] is
+BSD-style license found in [[https://raw.githubusercontent.com/google/re2/master/LICENSE][c_src/re2/LICENSE]]. The same [[https://raw.githubusercontent.com/tuncer/re2/master/LICENSE][license]] is
 used for the NIF library.
