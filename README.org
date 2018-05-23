@@ -19,6 +19,18 @@
 The library's API follows the standard Erlang/OTP =re= API as closely as
 possible while accounting for the differences in RE2.
 
+#+BEGIN_EXAMPLE
+$ erl
+1> re2:run("Bar-foo-Baz", "FoO", [caseless]).
+{match,[<<"foo">>]}
+2> re2:replace("Baz-foo-Bar", "foo", "FoO", []).
+<<"Baz-FoO-Bar">>
+3> {ok, RE} = re2:compile("Foo.*Bar", [caseless]).
+{ok,#Ref<0.3540238268.2241986568.233969>}
+4> re2:run("Foo-baz-bAr", RE).
+{match,[<<"Foo-baz-bAr">>]}
+#+END_EXAMPLE
+
 ** Obtaining re2
    :PROPERTIES:
    :CUSTOM_ID: obtaining-re2
@@ -53,13 +65,13 @@ target directory. Once that's done, cd into the directory and run
 =rebar3 compile= or just =make=.
 
 Now, if you start =erl=, you should be able to call functions from the
-=re2= module.
+=re2= module:
 
 #+BEGIN_EXAMPLE
-    $ erl
-    1> code:which(re2).
-    "/usr/lib/erlang/lib/re2/ebin/re2.beam"
-    2>
+$ erl
+1> code:which(re2).
+"/usr/lib/erlang/lib/re2/ebin/re2.beam"
+2>
 #+END_EXAMPLE
 
 *** Advanced build time options
@@ -81,6 +93,9 @@ If for some reason you need to fetch the upstream source from some
 other git repository, you can do so by setting the =RE2_URL= environment
 variable to a different git url.
 
-Unless otherwise noted, the [[https://github.com/google/re2][RE2]]
-source files are distributed under the BSD-style license found in
-=c_src/re2/LICENSE=.
+
+** License
+
+Unless otherwise noted, the [[https://github.com/google/re2][RE2]] source files are distributed under the
+BSD-style license found in [[https://raw.githubusercontent.com/google/re2/master/LICENSE][=c_src/re2/LICENSE=]]. The same [[https://raw.githubusercontent.com/tuncer/re2/master/LICENSE][license]] is
+used for the NIF library.
