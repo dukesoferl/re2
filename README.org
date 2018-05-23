@@ -17,7 +17,7 @@
    :END:
 
 The library's API follows the standard Erlang/OTP =re= API as closely as
-possible while accounting for the differences in RE2.
+possible while accounting for the differences in RE2:
 
 #+BEGIN_EXAMPLE
 $ erl
