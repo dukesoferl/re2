@@ -141,7 +141,7 @@ PortOpts = fun() ->
                    end
            end.
 
-PCDep = {pc, {git, "https://github.com/blt/port_compiler", {tag, "v1.9.1"}}}.
+PCDep = {pc, {git, "https://github.com/blt/port_compiler", {tag, "v1.10.1"}}}.
 %% PCDep = pc.
 TestDeps = [{deps, [{triq, ".*",
                      {git, "https://gitlab.com/triq/triq.git",
