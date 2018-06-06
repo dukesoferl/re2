@@ -108,8 +108,8 @@ PortOpts = fun() ->
                                 [
                                  {"priv/re2_nif.so", ["c_src/re2_nif.cc"]}
                                 ]},
-                   BaseCFLAGS = "$DRV_CFLAGS -O3 -Wall -Wextra -std=c++11 "
-                       ++ DebugFlags ++ " ",
+                   BaseCFLAGS = "$DRV_CFLAGS -O3 -std=c++11 "
+                       "-Wall -Wextra -Wpedantic " ++ DebugFlags ++ " ",
                    Hooks = [ {pre_hooks,
                               [{{pc, compile}, "c_src/build_deps.sh"}]}
                            , {post_hooks,
@@ -120,7 +120,7 @@ PortOpts = fun() ->
                            %% Use existing (system) RE2
                            [ PortSpecs
                            , {port_env,
-                              [ {"DRV_CFLAGS",  BaseCFLAGS ++ Inc}
+                              [ {"DRV_CFLAGS", BaseCFLAGS ++ Inc}
                               , {"DRV_LDFLAGS",
                                  "$DRV_LDFLAGS -L" ++ LibDir
                                  ++ " " ++ Lib}
@@ -132,7 +132,7 @@ PortOpts = fun() ->
                            PortCompilerSettings =
                                [ PortSpecs
                                , {port_env,
-                                  [ {"DRV_CFLAGS",  BaseCFLAGS ++ Inc}
+                                  [ {"DRV_CFLAGS", BaseCFLAGS ++ Inc}
                                   , {"DRV_LDFLAGS",
                                      "$DRV_LDFLAGS " ++ Lib}
                                   ]}
@@ -143,11 +143,11 @@ PortOpts = fun() ->
 
 PCDep = {pc, {git, "https://github.com/blt/port_compiler", {tag, "v1.10.1"}}}.
 %% PCDep = pc.
-TestDeps = [{deps, [{triq, ".*",
-                     {git, "https://gitlab.com/triq/triq.git",
-                      {branch, "master"}}}] }].
-%% TestDeps = [{deps, [triq]}].
+TestDeps = [{triq, ".*",
+             {git, "https://gitlab.com/triq/triq.git", {branch, "master"}}}].
+%% TestDeps = [triq].
 
+DebugWarns = [warnings_as_errors].
 GeneralOpts = [ {plugins, [PCDep]}
               , {artifacts, ["priv/re2_nif.so"]}
               , {pc_clang_db, true}
@@ -159,10 +159,13 @@ GeneralOpts = [ {plugins, [PCDep]}
                  ]}
               , {eunit_opts, [verbose]}
               , {profiles
-                , [ {test, TestDeps}
+                , [ {test
+                    , [ {deps, TestDeps}
+                      , {erl_opts, DebugWarns}
+                      ]}
                   , {debug
                     , [ {port_env, [{"DRV_CFLAGS", "$DRV_CFLAGS -DDEBUG"}]}
-                      , {erl_opts, [{d, 'DEV'}, {d, 'DEBUG'}]}
+                      , {erl_opts, DebugWarns ++ [{d, 'DEV'}, {d, 'DEBUG'}]}
                       ]}
                   ]}
               ].
