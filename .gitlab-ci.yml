@@ -14,7 +14,7 @@
 
 variables:
   GIT_DEPTH: "3"
-  DEFAULT_IMAGE: erlang:20-alpine
+  DEFAULT_IMAGE: erlang:21-alpine
 
 pages:
   stage: deploy
@@ -79,17 +79,17 @@ release:
     - apk add --update make g++ clang git
     - make clean all test
 
-test:20-gcc:
+test:21-gcc:
   <<: *test_job_definition
   image: $DEFAULT_IMAGE
 
-test:20-clang:
+test:21-clang:
   <<: *test_job_definition
   image: $DEFAULT_IMAGE
   variables:
     CXX: "clang++"
 
-test:20-clang-debug:
+test:21-clang-debug:
   stage: test
   image: $DEFAULT_IMAGE
   variables:
@@ -100,6 +100,10 @@ test:20-clang-debug:
     # Verify that debug code is enabled
     - dev/l.sh 128
 
+test:20:
+  <<: *test_job_definition
+  image: erlang:20-alpine
+
 test:19:
   <<: *test_job_definition_non_alpine
   image: erlang:19
@@ -107,10 +111,6 @@ test:19:
 test:18:
   <<: *test_job_definition_non_alpine
   image: erlang:18
-
-test:17:
-  <<: *test_job_definition_non_alpine
-  image: erlang:17
 
 test:dialyze:
   stage: test
