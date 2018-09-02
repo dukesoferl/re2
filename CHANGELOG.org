@@ -6,6 +6,22 @@
   :CUSTOM_ID: change-log
   :END:
 
+** 1.8.5 - 2018-09-02
+   :PROPERTIES:
+   :CUSTOM_ID: section
+   :END:
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed
+    :END:
+
+- Switch RE2 default revision to 2018-09-01.
+- Update README.
+- Update rebar3 port compiler plugin.
+- Enable more CXX warnings.
+- CI: test with OTP 21 and drop 17.
+
 ** 1.8.4 - 2018-05-12
    :PROPERTIES:
    :CUSTOM_ID: section
