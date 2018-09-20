@@ -143,9 +143,9 @@ PortOpts = fun() ->
 
 PCDep = {pc, {git, "https://github.com/blt/port_compiler", {tag, "v1.10.1"}}}.
 %% PCDep = pc.
-TestDeps = [{triq, ".*",
-             {git, "https://gitlab.com/triq/triq.git", {branch, "master"}}}].
-%% TestDeps = [triq].
+%% TestDeps = [{triq, ".*",
+%%              {git, "https://gitlab.com/triq/triq.git", {branch, "master"}}}].
+TestDeps = [triq].
 
 DebugWarns = [warnings_as_errors].
 GeneralOpts = [ {plugins, [PCDep]}
