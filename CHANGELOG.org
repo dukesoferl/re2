@@ -6,6 +6,18 @@
   :CUSTOM_ID: change-log
   :END:
 
+** 1.8.6 - ????-??-??
+   :PROPERTIES:
+   :CUSTOM_ID: section
+   :END:
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed
+    :END:
+
+- Switch RE2 default revision to 2018-10-01.
+
 ** 1.8.5 - 2018-09-02
    :PROPERTIES:
    :CUSTOM_ID: section
