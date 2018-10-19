@@ -6,7 +6,7 @@
   :CUSTOM_ID: change-log
   :END:
 
-** 1.8.6 - ????-??-??
+** 1.8.6 - 2018-10-18
    :PROPERTIES:
    :CUSTOM_ID: section
    :END:
