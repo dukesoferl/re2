@@ -68,5 +68,9 @@ jobs:
   steps:
   - script: |
       choco install erlang rebar3
+      @call "C:/Program Files (x86)/Microsoft Visual Studio/2017/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
       rebar3 compile
-      rebar3 eunit
+      env DEBUG=1 rebar3 eunit
+      ls -lh priv
+      find . -name re2_nif.dll
+      file priv/re2_nif.dll
