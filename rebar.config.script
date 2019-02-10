@@ -79,11 +79,16 @@ FindRe2 = fun(SysLib, LocalLib) ->
                   end
           end.
 
+LibName = case os:type() of
+              {win32, _} -> "re2.lib";
+              _ -> "libre2.a"
+          end.
+
 {DebugFlags, LocalRe2Archive} = case os:getenv("RE2_DEBUG") of
                                     false ->
-                                        {[], "c_src/re2/obj/libre2.a"};
+                                        {[], "c_src/re2/obj/" ++ LibName};
                                     _ ->
-                                        {"-g", "c_src/re2/obj/dbg/libre2.a"}
+                                        {"-g", "c_src/re2/obj/dbg/" ++ LibName}
                                 end,
 
 WhichRe2 = fun() ->
@@ -103,17 +108,22 @@ WhichRe2 = fun() ->
                    end
            end.
 
+ExtraCFLAGS = case os:type() of
+                  {unix,_} -> "-Wall -Wextra -Wpedantic";
+                  _ -> ""
+              end.
+
 PortOpts = fun() ->
                    PortSpecs = {port_specs,
                                 [
                                  {"priv/re2_nif.so", ["c_src/re2_nif.cc"]}
                                 ]},
-                   BaseCFLAGS = "$DRV_CFLAGS -O3 -std=c++11 "
-                       "-Wall -Wextra -Wpedantic " ++ DebugFlags ++ " ",
+                   BaseCFLAGS = "$DRV_CFLAGS -O3 -std=c++11 " ++
+                        ExtraCFLAGS ++ " " ++ DebugFlags ++ " ",
                    Hooks = [ {pre_hooks,
-                              [{{pc, compile}, "c_src/build_deps.sh"}]}
+                              [{{pc, compile}, "sh -c c_src/build_deps.sh"}]}
                            , {post_hooks,
-                              [{{pc, clean}, "c_src/build_deps.sh clean"}]}
+                              [{{pc, clean}, "sh -c c_src/build_deps.sh clean"}]}
                            ],
                    case WhichRe2() of
                        {Inc, {LibDir, {sys, Lib}}} ->
