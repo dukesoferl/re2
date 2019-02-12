@@ -8,11 +8,9 @@
                   ]}
  , {env, []}
 
- , {maintainers, ["Tuncer Ayaz"]}
+ , {maintainers, ["Anthony Molinaro"]}
  , {licenses, ["BSD"]}
- , {links, [ {"Homepage", "https://tuncer.gitlab.io/re2erl"}
-           , {"GitHub", "https://github.com/tuncer/re2"}
-           , {"GitLab", "https://gitlab.com/tuncer/re2erl"}
+ , {links, [ {"GitHub", "https://github.com/dukesoferl/re2-erlang"}
            , {"RE2 library Google Source", "https://code.googlesource.com/re2"}
            , {"RE2 library GitHub", "https://github.com/google/re2"}
            ]}

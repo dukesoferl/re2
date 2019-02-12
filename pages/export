@@ -1,8 +1,0 @@
-#!/bin/sh
-set -u
-emacs --batch \
-    --no-init-file \
-    -L .org-mode/lisp \
-    -L .org-mode/contrib/lisp \
-    --load export.el \
-    --funcall org-publish-all
