@@ -10,7 +10,7 @@
 
  , {maintainers, ["Anthony Molinaro"]}
  , {licenses, ["BSD"]}
- , {links, [ {"GitHub", "https://github.com/dukesoferl/re2-erlang"}
+ , {links, [ {"GitHub", "https://github.com/dukesoferl/re2"}
            , {"RE2 library Google Source", "https://code.googlesource.com/re2"}
            , {"RE2 library GitHub", "https://github.com/google/re2"}
            ]}
