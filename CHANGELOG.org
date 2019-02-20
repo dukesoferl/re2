@@ -6,6 +6,18 @@
   :CUSTOM_ID: change-log
   :END:
 
+** 1.8.9 - 2019-02-20
+   :PROPERTIES:
+   :CUSTOM_ID: section
+   :END:
+
+*** Changed
+    :PROPERTIES:
+    :CUSTOM_ID: changed
+    :END:
+
+- Fix URL in Hex metadata.
+
 ** 1.8.8 - 2019-02-15
    :PROPERTIES:
    :CUSTOM_ID: section
