@@ -16,7 +16,7 @@
     :CUSTOM_ID: changed
     :END:
 
-- Fix URL in Hex metadata
+- Fix URL in Hex metadata.
 
 ** 1.8.8 - 2019-02-15
    :PROPERTIES:
