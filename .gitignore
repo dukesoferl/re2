@@ -7,7 +7,4 @@
 /rebar.lock
 /*.html
 /compile_commands.json
-/pages/out
-/pages/.org-mode
-/pages/org-latest.tar.gz
 /dev/rebar3
