@@ -30,11 +30,11 @@ Obtaining re2
 To use `re2`, you can add it as a project dependency and let your
 package manager of choice handle it:
 
-  -------------- --------------------
-  rebar.config   `{deps, [re2]}`
-  erlang.mk      `DEPS = re2`
-  mix.exs        `{:re2, "~> 1.*"}`
-  -------------- --------------------
+| Build tool   | Dependency spec    |
+| ----------   | ---------------    |
+| rebar.config | `{deps, [re2]}`    |
+| erlang.mk    | `DEPS = re2`       |
+| mix.exs      | `{:re2, "~> 1.*"}` |
 
 ### Installation from source into `$ERL_LIBS`
 
