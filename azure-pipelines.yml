@@ -1,0 +1,72 @@
+trigger:
+- master
+
+jobs:
+- job: clang_format
+  pool:
+    image: 'ubuntu-16.04'
+  steps:
+    - script: |
+        llvm_release=clang+llvm-7.0.1-x86_64-linux-gnu-ubuntu-16.04
+        llvm_tarball=$llvm_release.tar.xz
+        wget -q http://releases.llvm.org/7.0.1/$llvm_tarball
+        tar xf $llvm_tarball
+        export PATH=$PWD/$llvm_release/bin:$PATH
+        clang-format --version
+        dev/check-fmt
+
+- job: Linux
+  pool:
+    vmImage: 'ubuntu-16.04'
+  strategy:
+    matrix:
+      gcc:
+        CC: 'gcc'
+        CXX: 'g++'
+      clang:
+        CC: 'clang'
+        CXX: 'clang++'
+  steps:
+  - script: |
+      rebar3 compile
+      rebar3 eunit
+
+- job: Linux_Debug
+  pool:
+    vmImage: 'ubuntu-16.04'
+  strategy:
+    matrix:
+      gcc:
+        CC: 'gcc'
+        CXX: 'g++'
+      clang:
+        CC: 'clang'
+        CXX: 'clang++'
+  steps:
+  - script: |
+      RE2_DEBUG=1 rebar3 as debug compile
+      RE2_DEBUG=1 rebar3 as debug eunit
+      dev/l.sh 128
+
+- job: Dialyzer
+  pool:
+    vmImage: 'ubuntu-16.04'
+  steps:
+  - script: rebar3 dialyzer
+
+- job: macOS
+  pool:
+    vmImage: 'macOS-10.13'
+  steps:
+  - script: |
+      brew install erlang
+      make clean test
+
+- job: Windows
+  pool:
+    vmImage: 'vs2017-win2016'
+  steps:
+  - script: |
+      choco install erlang rebar3
+      rebar3 compile
+      rebar3 eunit
