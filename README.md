@@ -1,7 +1,8 @@
 Erlang NIF bindings for the RE2 regex library
 =============================================
 
-[![Build Status](https://dev.azure.com/dukesoferl/re2erl/_build)](https://dev.azure.com/dukesoferl/re2erl/_build)
+
+[![Build Status](https://dev.azure.com/dukesoferl/re2erl/_apis/build/status/dukesoferl.re2?branchName=master)](https://dev.azure.com/dukesoferl/re2erl/_build/latest?definitionId=1&branchName=master)
 
 Using re2
 ---------
