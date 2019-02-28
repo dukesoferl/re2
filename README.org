@@ -6,10 +6,7 @@
   :CUSTOM_ID: erlang-nif-bindings-for-the-re2-regex-library
   :END:
 
-
-#+BEGIN_EXPORT html
-<a href="https://gitlab.com/tuncer/re2erl/pipelines"><img src="https://gitlab.com/tuncer/re2erl/badges/master/pipeline.svg"></a>
-#+END_EXPORT
+[[https://dev.azure.com/dukesoferl/re2erl/_build][file:https://dev.azure.com/dukesoferl/re2erl/_apis/build/status/dukesoferl.re2?branchName=master]]
 
 ** Using re2
    :PROPERTIES:
