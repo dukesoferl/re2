@@ -28,8 +28,8 @@ jobs:
         CXX: 'clang++'
   steps:
   - script: |
-      rebar3 compile
-      rebar3 eunit
+      env REBAR_COLOR=low rebar3 compile
+      env REBAR_COLOR=low rebar3 eunit
 
 - job: Linux_Debug
   pool:
@@ -44,15 +44,15 @@ jobs:
         CXX: 'clang++'
   steps:
   - script: |
-      RE2_DEBUG=1 rebar3 as debug compile
-      RE2_DEBUG=1 rebar3 as debug eunit
+      env RE2_DEBUG=1 REBAR_COLOR=low rebar3 as debug compile
+      env RE2_DEBUG=1 REBAR_COLOR=low rebar3 as debug eunit
       dev/l.sh 128
 
 - job: Dialyzer
   pool:
     vmImage: 'ubuntu-16.04'
   steps:
-  - script: rebar3 dialyzer
+  - script: env REBAR_COLOR=low rebar3 dialyzer
 
 - job: macOS
   pool:
@@ -69,8 +69,7 @@ jobs:
   - script: |
       choco install erlang rebar3
       @call "C:/Program Files (x86)/Microsoft Visual Studio/2017/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
-      rebar3 compile
-      env DEBUG=1 rebar3 eunit
+      env REBAR_COLOR=low DEBUG=1 rebar3 compile
       ls -lh priv
       find . -name re2_nif.dll
       file priv/re2_nif.dll
