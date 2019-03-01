@@ -9,7 +9,7 @@ jobs:
     - script: |
         llvm_release=clang+llvm-7.0.1-x86_64-linux-gnu-ubuntu-16.04
         llvm_tarball=$llvm_release.tar.xz
-        wget -q http://releases.llvm.org/7.0.1/$llvm_tarball
+        wget -q https://releases.llvm.org/7.0.1/$llvm_tarball
         tar xf $llvm_tarball
         export PATH=$PWD/$llvm_release/bin:$PATH
         clang-format --version
