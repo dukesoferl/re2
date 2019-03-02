@@ -56,7 +56,11 @@ case "$1" in
                 else
                     BUILD_TYPE=Release
                 fi
-                cmake -D CMAKE_BUILD_TYPE=$BUILD_TYPE -G "$GENERATOR" -A x64 ..
+                cmake -D RE2_BUILD_TESTING=OFF \
+                    -D CMAKE_BUILD_TYPE=$BUILD_TYPE \
+                    -G "$GENERATOR" \
+                    -A x64 \
+                    ..
                 cmake --build . --config $BUILD_TYPE
                 cd ..
                 LIB=windows_build/$BUILD_TYPE/re2.lib
