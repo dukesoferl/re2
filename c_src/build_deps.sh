@@ -6,13 +6,6 @@ test `basename $PWD` != "c_src" && cd c_src
 case "$(uname -o)" in
     Msys*|Cygwin*)
         IS_WINDOWS=yes
-        echo "===> IS_WINDOWS: $IS_WINDOWS"
-        if [ x"$RE2_MSYS2" = x"1" ]; then
-            USE_CMAKE_ON_WINDOWS=no
-            echo "===> Use MSYS2 toolchain like regular clang or gcc"
-        else
-            USE_CMAKE_ON_WINDOWS=yes
-        fi
         ;;
     *)
         IS_WINDOWS=no;;
@@ -24,7 +17,7 @@ case "$1" in
         ;;
 
     *)
-        if [ x"$USE_CMAKE_ON_WINDOWS" = x"yes" ]; then
+        if [ x"$IS_WINDOWS" = x"yes" ]; then
             RE2_ARCHIVE=re2.lib
         else
             RE2_ARCHIVE=libre2.a
@@ -49,7 +42,7 @@ case "$1" in
         test -d re2 || git clone $RE2_URL re2
         (cd re2 && git fetch --all && git checkout $RE2_REV)
 
-        if [ x"$USE_CMAKE_ON_WINDOWS" = x"yes" ]; then
+        if [ x"$IS_WINDOWS" = x"yes" ]; then
             (
                 cd re2
                 mkdir -p windows_build
@@ -61,32 +54,22 @@ case "$1" in
                 else
                     BUILD_TYPE=Release
                 fi
-                GENERATOR_ARCH=""
-                case $GENERATOR in
-                    Visual*)
-                        LIB=windows_build/$BUILD_TYPE/$RE2_ARCHIVE
-                        GENERATOR_ARCH="-DCMAKE_GENERATOR_PLATFORM=x64"
-                        GENERATOR_ARCH="-A x64"
-                        ;;
-                    NMake*)
-                        LIB=windows_build/$RE2_ARCHIVE
-                        ;;
-                    *)
-                        ;;
-                esac
+                LIB=windows_build/$BUILD_TYPE/$RE2_ARCHIVE
                 # TODO remove debug
                 set -x
+                # -A x64
                 cmake -D RE2_BUILD_TESTING=OFF \
                     -D CMAKE_BUILD_TYPE=$BUILD_TYPE \
                     -G "$GENERATOR" \
+                    -D CMAKE_GENERATOR_PLATFORM=x64 \
                     -D CMAKE_COLOR_MAKEFILE=OFF \
                     ..
                 cmake --build . --config $BUILD_TYPE
-                # TODO remove debug
-                set +x
                 cd ..
                 mkdir -p $(dirname $LIBRE2)
                 cp $LIB $LIBRE2
+                # TODO remove debug
+                set +x
             )
         else
             CXXFLAGS="-Wall -O3 -fPIC -pthread -std=c++11 -m$ERLANG_ARCH"
