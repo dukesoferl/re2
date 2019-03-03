@@ -79,10 +79,18 @@ FindRe2 = fun(SysLib, LocalLib) ->
                   end
           end.
 
-LibName = case os:type() of
-              {win32, _} -> "re2.lib";
+%% If Windows and RE2_MSYS2 is not set, assume regular clang/gcc toolchain
+LibName = case {os:type(), os:getenv("RE2_MSYS2")} of
+              {{win32,_}, false} -> "re2.lib";
               _ -> "libre2.a"
           end.
+
+CLANG_GCC_EXTRA_CFLAGS="-Wall -Wextra -Wpedantic".
+ExtraCFLAGS = case {os:type(), os:getenv("RE2_MSYS2")} of
+                  {{unix,_}, _} -> CLANG_GCC_EXTRA_CFLAGS;
+                  {{win32,_}, "1"} -> CLANG_GCC_EXTRA_CFLAGS;
+                  _ -> ""
+              end.
 
 {DebugFlags, LocalRe2Archive} = case os:getenv("RE2_DEBUG") of
                                     false ->
@@ -108,10 +116,35 @@ WhichRe2 = fun() ->
                    end
            end.
 
-ExtraCFLAGS = case os:type() of
-                  {unix,_} -> "-Wall -Wextra -Wpedantic";
-                  _ -> ""
-              end.
+WindowsMSYS2PortEnv = [
+                        {"win32", "CC", "gcc"},
+                        {"win32", "CXX", "g++"},
+                        {"win32", "AR", "ar"},
+                        {"win32", "AS", "as"},
+                        {"win32", "CPP", "cpp"},
+                        {"win32", "LD", "ld"},
+                        {"win32", "RANLIB", "ranlib"},
+                        {"win32", "STRIP", "strip"},
+                        {"win32", "NM", "nm"},
+                        {"win32", "OBJCOPY", "objcopy"},
+                        {"win32", "OBJDUMP", "objdump"},
+                        {"win32", "DRV_CXX_TEMPLATE",
+                         "$CXX -c $CXXFLAGS $DRV_CFLAGS $PORT_IN_FILES -o $PORT_OUT_FILE"},
+                        {"win32", "DRV_CC_TEMPLATE",
+                         "$CC -c $CFLAGS $DRV_CFLAGS $PORT_IN_FILES -o $PORT_OUT_FILE"},
+                        {"win32", "DRV_LINK_TEMPLATE",
+                         "$CC $PORT_IN_FILES $LDFLAGS $DRV_LDFLAGS -o $PORT_OUT_FILE"},
+                        {"win32", "DRV_LINK_CXX_TEMPLATE",
+                         "$CXX $PORT_IN_FILES $LDFLAGS $DRV_LDFLAGS -o $PORT_OUT_FILE"},
+                        {"win32", "DRV_CFLAGS", "-g -Wall -fPIC -MMD $ERL_CFLAGS"},
+                        {"win32", "DRV_LDFLAGS", "-shared $ERL_LDFLAGS"}
+                       ].
+CustomPortEnv = case {os:type(), os:getenv("RE2_MSYS2")} of
+                    {{win32, _}, "1"} ->
+                        WindowsMSYS2PortEnv;
+                    _ ->
+                        []
+                end.
 
 PortOpts = fun() ->
                    PortSpecs = {port_specs,
@@ -130,6 +163,7 @@ PortOpts = fun() ->
                            %% Use existing (system) RE2
                            [ PortSpecs
                            , {port_env,
+                              CustomPortEnv ++
                               [ {"DRV_CFLAGS", BaseCFLAGS ++ Inc}
                               , {"DRV_LDFLAGS",
                                  "$DRV_LDFLAGS -L" ++ LibDir
@@ -142,6 +176,7 @@ PortOpts = fun() ->
                            PortCompilerSettings =
                                [ PortSpecs
                                , {port_env,
+                                  CustomPortEnv ++
                                   [ {"DRV_CFLAGS", BaseCFLAGS ++ Inc}
                                   , {"DRV_LDFLAGS",
                                      "$DRV_LDFLAGS " ++ Lib}

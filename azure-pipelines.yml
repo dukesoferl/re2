@@ -62,14 +62,69 @@ jobs:
       brew install erlang
       make clean test
 
-- job: Windows
+- job: Windows_VS2017_NMake
   pool:
     vmImage: 'vs2017-win2016'
   steps:
   - script: |
-      choco install erlang rebar3
+      choco install --no-progress erlang rebar3
       @call "C:/Program Files (x86)/Microsoft Visual Studio/2017/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
-      env REBAR_COLOR=low DEBUG=1 rebar3 compile
+      env REBAR_COLOR=low CMAKE_GENERATOR='NMake Makefiles' DEBUG=1 rebar3 compile
+      ls -lh re2/obj/re2.lib
+      ls -lh priv
+      find . -name re2_nif.dll
+      file priv/re2_nif.dll
+- job: Windows_2016_MinGW_vcvars
+  pool:
+    vmImage: 'vs2017-win2016'
+  steps:
+  - script: |
+      choco install erlang rebar3 mingw
+      @call "C:/Program Files (x86)/Microsoft Visual Studio/2017/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+      env REBAR_COLOR=low CMAKE_GENERATOR='MinGW Makefiles' DEBUG=1 rebar3 compile
+      ls -lh priv
+      find . -name re2_nif.dll
+      file priv/re2_nif.dll
+- job: Windows_2016_MinGW
+  pool:
+    vmImage: 'vs2017-win2016'
+  steps:
+  - script: |
+      choco install erlang rebar3 mingw
+      env REBAR_COLOR=low CMAKE_GENERATOR='MinGW Makefiles' DEBUG=1 rebar3 compile
+      ls -lh priv
+      find . -name re2_nif.dll
+      file priv/re2_nif.dll
+- job: Windows_2016_MSYS
+  pool:
+    vmImage: 'vs2017-win2016'
+  steps:
+  - script: |
+      choco install erlang rebar3 msys2
+      env REBAR_COLOR=low CMAKE_GENERATOR='MSYS Makefiles' DEBUG=1 rebar3 compile
+      ls -lh priv
+      find . -name re2_nif.dll
+      file priv/re2_nif.dll
+- job: Windows_2016_MSYS2
+  pool:
+    vmImage: 'vs2017-win2016'
+  steps:
+  - script: |
+      choco install --no-progress erlang rebar3 msys2
+      env REBAR_COLOR=low RE2_MSYS2=1 DEBUG=1 rebar3 compile
+      ls -lh re2/obj/libre2.a
+      ls -lh priv
+      find . -name re2_nif.dll
+      file priv/re2_nif.dll
+- job: Windows_VS2017
+  pool:
+    vmImage: 'vs2017-win2016'
+  steps:
+  - script: |
+      choco install --no-progress erlang rebar3
+      @call "C:/Program Files (x86)/Microsoft Visual Studio/2017/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+      env REBAR_COLOR=low CMAKE_GENERATOR='Visual Studio 15 2017' DEBUG=1 rebar3 compile
+      ls -lh c_src/re2/windows_build/Release/re2.lib
       ls -lh priv
       find . -name re2_nif.dll
       file priv/re2_nif.dll

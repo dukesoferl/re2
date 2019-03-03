@@ -7,6 +7,12 @@ case "$(uname -o)" in
     Msys*|Cygwin*)
         IS_WINDOWS=yes
         echo "===> IS_WINDOWS: $IS_WINDOWS"
+        if [ x"$RE2_MSYS2" = x"1" ]; then
+            USE_CMAKE_ON_WINDOWS=no
+            echo "===> Use MSYS2 toolchain like regular clang or gcc"
+        else
+            USE_CMAKE_ON_WINDOWS=yes
+        fi
         ;;
     *)
         IS_WINDOWS=no;;
@@ -18,7 +24,7 @@ case "$1" in
         ;;
 
     *)
-        if [ x"$IS_WINDOWS" = x"yes" ]; then
+        if [ x"$USE_CMAKE_ON_WINDOWS" = x"yes" ]; then
             RE2_ARCHIVE=re2.lib
         else
             RE2_ARCHIVE=libre2.a
@@ -28,7 +34,6 @@ case "$1" in
         else
             LIBRE2="obj/$RE2_ARCHIVE"
         fi
-        unset RE2_ARCHIVE
         test -f re2/$LIBRE2 && exit 0
 
         RE2_REV=${RE2_REV:-2019-03-01}
@@ -44,26 +49,42 @@ case "$1" in
         test -d re2 || git clone $RE2_URL re2
         (cd re2 && git fetch --all && git checkout $RE2_REV)
 
-        if [ x"$IS_WINDOWS" = x"yes" ]; then
+        if [ x"$USE_CMAKE_ON_WINDOWS" = x"yes" ]; then
             (
                 cd re2
                 mkdir -p windows_build
                 cd windows_build
 
-                GENERATOR="Visual Studio 15 2017"
+                GENERATOR=${CMAKE_GENERATOR:-"Visual Studio 14 2015"}
                 if [ x"$RE2_DEBUG" = x"1" ]; then
                     BUILD_TYPE=Debug
                 else
                     BUILD_TYPE=Release
                 fi
+                GENERATOR_ARCH=""
+                case $GENERATOR in
+                    Visual*)
+                        LIB=windows_build/$BUILD_TYPE/$RE2_ARCHIVE
+                        GENERATOR_ARCH="-DCMAKE_GENERATOR_PLATFORM=x64"
+                        GENERATOR_ARCH="-A x64"
+                        ;;
+                    NMake*)
+                        LIB=windows_build/$RE2_ARCHIVE
+                        ;;
+                    *)
+                        ;;
+                esac
+                # TODO remove debug
+                set -x
                 cmake -D RE2_BUILD_TESTING=OFF \
                     -D CMAKE_BUILD_TYPE=$BUILD_TYPE \
                     -G "$GENERATOR" \
-                    -A x64 \
+                    -D CMAKE_COLOR_MAKEFILE=OFF \
                     ..
                 cmake --build . --config $BUILD_TYPE
+                # TODO remove debug
+                set +x
                 cd ..
-                LIB=windows_build/$BUILD_TYPE/re2.lib
                 mkdir -p $(dirname $LIBRE2)
                 cp $LIB $LIBRE2
             )
