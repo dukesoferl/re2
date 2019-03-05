@@ -90,12 +90,23 @@ ExtraCFLAGS = case os:type() of
                   _ -> ""
               end.
 
-{DebugFlags, LocalRe2Archive} = case os:getenv("RE2_DEBUG") of
-                                    false ->
-                                        {[], "c_src/re2/obj/" ++ LibName};
-                                    _ ->
-                                        {"-g", "c_src/re2/obj/dbg/" ++ LibName}
-                                end,
+GetFlagsAndLocalArchive =
+    fun() ->
+            WinRelFlags = "/MD",
+            WinDbgFlags = "/MDd",
+            RelFlags = [],
+            DbgFlags = "-g",
+            ObjDir = filename:join(["c_src", "re2", "obj"]),
+            RelArchive = filename:join(ObjDir, LibName),
+            DbgArchive = filename:join([ObjDir, "dbg", LibName]),
+            case {os:type(), os:getenv("RE2_DEBUG")} of
+                {{unix,_}, false}  -> {RelFlags, RelArchive};
+                {{unix,_}, "1"}    -> {DbgFlags, DbgArchive};
+                {{win32,_}, false} -> {WinRelFlags, RelArchive};
+                {{win32,_}, "1"}   -> {WinDbgFlags, RelArchive}
+            end
+    end.
+{Flags, LocalRe2Archive} = GetFlagsAndLocalArchive().
 
 WhichRe2 = fun() ->
                    SysRe2Lib = {sys, "-lre2"},
@@ -120,7 +131,7 @@ PortOpts = fun() ->
                                  {"priv/re2_nif.so", ["c_src/re2_nif.cc"]}
                                 ]},
                    BaseCFLAGS = "$DRV_CFLAGS -O3 -std=c++11 " ++
-                        ExtraCFLAGS ++ " " ++ DebugFlags ++ " ",
+                        ExtraCFLAGS ++ " " ++ Flags ++ " ",
                    Hooks = [ {pre_hooks,
                               [{{pc, compile}, "sh -c c_src/build_deps.sh"}]}
                            , {post_hooks,
@@ -160,8 +171,12 @@ PCDep = {pc, {git, "https://github.com/dukesoferl/rebar3_port_compiler", {branch
 TestDeps = [triq].
 
 DebugWarns = [warnings_as_errors].
+Artifact = case os:type() of
+               {win32,_} -> "priv/re2_nif.dll";
+               _ -> "priv/re2_nif.so"
+           end.
 GeneralOpts = [ {plugins, [PCDep]}
-              , {artifacts, ["priv/re2_nif.so"]}
+              , {artifacts, [Artifact]}
               , {pc_clang_db, true}
               , {provider_hooks,
                  [ {pre,
