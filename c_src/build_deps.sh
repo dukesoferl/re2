@@ -55,9 +55,6 @@ case "$1" in
                     BUILD_TYPE=Release
                 fi
                 LIB=windows_build/$BUILD_TYPE/$RE2_ARCHIVE
-                # TODO remove debug
-                set -x
-                # -A x64
                 cmake -D RE2_BUILD_TESTING=OFF \
                     -D CMAKE_BUILD_TYPE=$BUILD_TYPE \
                     -G "$GENERATOR" \
@@ -68,8 +65,6 @@ case "$1" in
                 cd ..
                 mkdir -p $(dirname $LIBRE2)
                 cp $LIB $LIBRE2
-                # TODO remove debug
-                set +x
             )
         else
             CXXFLAGS="-Wall -O3 -fPIC -pthread -std=c++11 -m$ERLANG_ARCH"

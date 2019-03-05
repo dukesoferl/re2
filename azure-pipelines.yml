@@ -70,5 +70,4 @@ jobs:
       choco install --no-progress erlang rebar3
       @call "C:/Program Files (x86)/Microsoft Visual Studio/2017/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
       env REBAR_COLOR=none CMAKE_GENERATOR='Visual Studio 15 2017' rebar3 compile
-      find . -name re2_nif.dll
       env REBAR_COLOR=none CMAKE_GENERATOR='Visual Studio 15 2017' rebar3 eunit
