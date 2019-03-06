@@ -74,6 +74,15 @@ for some reason you need to fetch the upstream source from some other
 git repository, you can do so by setting the `RE2_URL` environment
 variable to a different git url.
 
+### Windows build
+
+If you're trying to build on Windows, please make sure you have CMake and
+Visual Studio 2017. Before trying to build with `rebar3`, make sure
+`rebar3`, `erlc`, `make`, `cmake` are in the search path and that you've
+run Visual Studio's `vcvars64.bat`, or are inside the equivalent shell
+(spawned from the start menu entry). Windows builds are tested on Azure
+Pipelines (see CI badge).
+
 License
 -------
 
