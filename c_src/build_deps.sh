@@ -48,7 +48,7 @@ case "$1" in
                 mkdir -p windows_build
                 cd windows_build
 
-                GENERATOR=${CMAKE_GENERATOR:-"Visual Studio 14 2015"}
+                GENERATOR=${RE2_CMAKE_GENERATOR:-"Visual Studio 15 2017"}
                 if [ x"$RE2_DEBUG" = x"1" ]; then
                     BUILD_TYPE=Debug
                 else
