@@ -92,9 +92,9 @@ ExtraCFLAGS = case os:type() of
 
 GetFlagsAndLocalArchive =
     fun() ->
-            WinRelFlags = "/MD",
+            WinRelFlags = "/O2 /MD",
             WinDbgFlags = "/MDd",
-            RelFlags = [],
+            RelFlags = "-O3",
             DbgFlags = "-g",
             ObjDir = filename:join(["c_src", "re2", "obj"]),
             RelArchive = filename:join(ObjDir, LibName),
@@ -130,7 +130,7 @@ PortOpts = fun() ->
                                 [
                                  {"priv/re2_nif.so", ["c_src/re2_nif.cc"]}
                                 ]},
-                   BaseCFLAGS = "$DRV_CFLAGS -O3 -std=c++11 " ++
+                   BaseCFLAGS = "$DRV_CFLAGS -std=c++11 " ++
                         ExtraCFLAGS ++ " " ++ Flags ++ " ",
                    Hooks = [ {pre_hooks,
                               [{{pc, compile}, "sh -c c_src/build_deps.sh"}]}
