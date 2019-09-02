@@ -183,7 +183,6 @@ GeneralOpts = [ {plugins, [PCDep]}
                     , {clean, {pc, clean}}
                     ]}
                  ]}
-              , {eunit_opts, [verbose]}
               , {profiles
                 , [ {test
                     , [ {deps, TestDeps}
