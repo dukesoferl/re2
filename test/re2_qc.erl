@@ -1,4 +1,4 @@
-%% Copyright 2013-2019 Tuncer Ayaz
+%% Copyright 2013-2020 Tuncer Ayaz
 %% Use of this source code is governed by a BSD-style
 %% license that can be found in the LICENSE file.
 
