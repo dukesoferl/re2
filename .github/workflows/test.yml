@@ -1,0 +1,83 @@
+on: [push, pull_request]
+
+jobs:
+  dialyzer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: gleam-lang/setup-erlang@v1.1.0
+        with:
+          otp-version: 22.3
+      - name: Dialyzer
+        run: rebar3 dialyzer
+
+  clang-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Print clang-format version
+        run: clang-format --version
+      - name: Run clang-format 
+        run: dev/check-fmt
+
+  test-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        otp: [21.3, 22.3, 23.0.1]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: gleam-lang/setup-erlang@v1.1.0
+        with:
+          otp-version: ${{matrix.otp}}
+      - name: Compile
+        run: rebar3 compile
+      - name: Run tests
+        run: rebar3 eunit
+
+  test-linux-debug:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        otp: [21.3, 22.3, 23.0.1]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: gleam-lang/setup-erlang@v1.1.0
+        with:
+          otp-version: ${{matrix.otp}}
+      - name: Compile
+        run: rebar3 as debug compile
+      - name: Run tests
+        run: rebar3 as debug eunit
+      - run: dev/l.sh 128
+    env:
+      RE2_DEBUG: 1
+
+  test-macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        otp: ["erlang@21", "erlang@22", "erlang"]
+    steps:
+      - uses: actions/checkout@v2
+      - run: brew install ${{matrix.otp}} rebar3
+      - name: Compile
+        run: rebar3 compile
+      - name: Run tests
+        run: rebar3 eunit
+
+  test-windows:
+    runs-on: windows-2016
+    steps:
+      - uses: actions/checkout@v2
+      - run: choco install erlang rebar3
+      - run: |
+          Install-Module -Name posh-vs -Force
+          Install-PoshVs
+          . $profile
+      - name: Compile
+        run: |
+          rebar3 compile
+      - name: Run tests
+        run: |
+          rebar3 eunit
