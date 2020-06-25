@@ -78,7 +78,7 @@ case "$1" in
             )
         else
             if [ x"$IS_MACOS" = x"no" ]; then
-                ERLANG_FLAGS="-m$ERLANG_FLAGS"
+                ERLANG_FLAGS="-m$ERLANG_ARCH"
             else
                 ERLANG_FLAGS=""
             fi
