@@ -11,6 +11,7 @@ case "$(uname -s)" in
     CYGWIN*|MINGW*)
         IS_WINDOWS=yes
         IS_MACOS=no
+        ;;
     *)
         IS_WINDOWS=no
         IS_MACOS=no
