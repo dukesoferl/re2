@@ -8,16 +8,12 @@ case "$(uname -s)" in
         IS_WINDOWS=no
         IS_MACOS=yes
         ;;
-    *)
+    CYGWIN*|MINGW*)
+        IS_WINDOWS=yes
         IS_MACOS=no
-        case "$(uname -o)" in
-            Msys*|Cygwin*)
-                IS_WINDOWS=yes
-                ;;
-            *)
-                IS_WINDOWS=no
-                ;;
-        esac
+    *)
+        IS_WINDOWS=no
+        IS_MACOS=no
         ;;
 esac
 
