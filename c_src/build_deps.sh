@@ -3,18 +3,15 @@ set -e
 
 test `basename $PWD` != "c_src" && cd c_src
 
+IS_WINDOWS=no
+IS_MACOS=no
+
 case "$(uname -s)" in
     Darwin)
-        IS_WINDOWS=no
         IS_MACOS=yes
         ;;
     CYGWIN*|MINGW*)
         IS_WINDOWS=yes
-        IS_MACOS=no
-        ;;
-    *)
-        IS_WINDOWS=no
-        IS_MACOS=no
         ;;
 esac
 
