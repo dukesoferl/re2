@@ -3,12 +3,16 @@ set -e
 
 test `basename $PWD` != "c_src" && cd c_src
 
-case "$(uname -o)" in
-    Msys*|Cygwin*)
+IS_WINDOWS=no
+IS_MACOS=no
+
+case "$(uname -s)" in
+    Darwin)
+        IS_MACOS=yes
+        ;;
+    CYGWIN*|MINGW*)
         IS_WINDOWS=yes
         ;;
-    *)
-        IS_WINDOWS=no;;
 esac
 
 case "$1" in
@@ -67,8 +71,14 @@ case "$1" in
                 cp $LIB $LIBRE2
             )
         else
-            CXXFLAGS="-Wall -O3 -fPIC -pthread -std=c++11 -m$ERLANG_ARCH"
-            CXX="${CXX:-c++} -m$ERLANG_ARCH"
+            if [ x"$IS_MACOS" = x"no" ]; then
+                ERLANG_FLAGS="-m$ERLANG_ARCH"
+            else
+                ERLANG_FLAGS=""
+            fi
+
+            CXXFLAGS="-Wall -O3 -fPIC -pthread -std=c++11 $ERLANG_FLAGS"
+            CXX="${CXX:-c++} $ERLANG_FLAGS"
             type gmake 1>/dev/null 2>/dev/null && MAKE=gmake
             MAKE=${MAKE:-make}
             MAKEFLAGS=${MAKEFLAGS:--j2}
