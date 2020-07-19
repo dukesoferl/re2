@@ -1,4 +1,4 @@
-Erlang NIF bindings for the RE2 regex library
+Erlang NIF bindings for RE2 regex library
 =============================================
 
 Using re2
