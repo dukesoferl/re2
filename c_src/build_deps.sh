@@ -5,6 +5,7 @@ test `basename $PWD` != "c_src" && cd c_src
 
 IS_WINDOWS=no
 IS_MACOS=no
+IS_ARM=no
 
 case "$(uname -s)" in
     Darwin)
@@ -12,6 +13,12 @@ case "$(uname -s)" in
         ;;
     CYGWIN*|MINGW*)
         IS_WINDOWS=yes
+        ;;
+esac
+
+case "$(uname -m)" in
+    armv*)
+        IS_ARM=yes
         ;;
 esac
 
@@ -71,7 +78,7 @@ case "$1" in
                 cp $LIB $LIBRE2
             )
         else
-            if [ x"$IS_MACOS" = x"no" ]; then
+            if [ x"$IS_MACOS" = x"no" ] && [ x"$IS_ARM" = x"no" ]; then
                 ERLANG_FLAGS="-m$ERLANG_ARCH"
             else
                 ERLANG_FLAGS=""
