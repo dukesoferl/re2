@@ -6,9 +6,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: gleam-lang/setup-erlang@v1.1.0
+      - uses: erlef/setup-beam@v1
         with:
-          otp-version: 22.3
+          otp-version: 24.3
       - name: Dialyzer
         run: rebar3 dialyzer
 
@@ -25,10 +25,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        otp: [21.3, 22.3, 23.0.1]
+        otp: [23.3]
     steps:
       - uses: actions/checkout@v2
-      - uses: gleam-lang/setup-erlang@v1.1.0
+      - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{matrix.otp}}
       - name: Compile
@@ -40,10 +40,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        otp: [21.3, 22.3, 23.0.1]
+        otp: [23.3]
     steps:
       - uses: actions/checkout@v2
-      - uses: gleam-lang/setup-erlang@v1.1.0
+      - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{matrix.otp}}
       - name: Compile
@@ -54,18 +54,19 @@ jobs:
     env:
       RE2_DEBUG: 1
 
-  test-macos:
-    runs-on: macos-latest
-    strategy:
-      matrix:
-        otp: ["erlang@21", "erlang@22", "erlang"]
-    steps:
-      - uses: actions/checkout@v2
-      - run: brew install ${{matrix.otp}} rebar3
-      - name: Compile
-        run: rebar3 compile
-      - name: Run tests
-        run: rebar3 eunit
+  # There is an issue with triq which prevents these tests from running ...
+  # test-macos:
+  #   runs-on: macos-latest
+  #   strategy:
+  #     matrix:
+  #       otp: ["erlang@22", "erlang@23"]
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - run: brew install ${{matrix.otp}} rebar3
+  #     - name: Compile
+  #       run: rebar3 compile
+  #     - name: Run tests
+  #       run: rebar3 eunit
 
   test-windows:
     runs-on: windows-2016

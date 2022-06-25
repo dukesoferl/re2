@@ -1,6 +1,6 @@
 {application, re2,
  [ {description, "Erlang NIF bindings for RE2 regex library"}
- , {vsn, "1.9.7"}
+ , {vsn, "1.9.8"}
  , {modules, [re2]}
  , {registered, []}
  , {applications, [ kernel
