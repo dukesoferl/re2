@@ -167,7 +167,8 @@ PortOpts = fun() ->
 PCDep = {pc, "1.14.0"}.
 %% TestDeps = [{triq, ".*",
 %%              {git, "https://gitlab.com/triq/triq.git", {branch, "master"}}}].
-TestDeps = [triq].
+%TestDeps = [triq].
+TestDeps = [].
 
 DebugWarns = [warnings_as_errors].
 Artifact = case os:type() of
