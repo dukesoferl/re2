@@ -3,17 +3,18 @@ on: [push, pull_request]
 
 jobs:
   dialyzer:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
       - uses: erlef/setup-beam@v1
         with:
           otp-version: 24.3
+          rebar3-version: 3.17
       - name: Dialyzer
         run: rebar3 dialyzer
 
   clang-format:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
       - name: Print clang-format version
@@ -22,30 +23,32 @@ jobs:
         run: dev/check-fmt
 
   test-linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        otp: [23.3]
+        otp: [24.3]
     steps:
       - uses: actions/checkout@v2
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{matrix.otp}}
+          rebar3-version: 3.17
       - name: Compile
         run: rebar3 compile
       - name: Run tests
         run: rebar3 eunit
 
   test-linux-debug:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        otp: [23.3]
+        otp: [24.3]
     steps:
       - uses: actions/checkout@v2
       - uses: erlef/setup-beam@v1
         with:
           otp-version: ${{matrix.otp}}
+          rebar3-version: 3.17
       - name: Compile
         run: rebar3 as debug compile
       - name: Run tests
@@ -69,10 +72,13 @@ jobs:
   #       run: rebar3 eunit
 
   test-windows:
-    runs-on: windows-2016
+    runs-on: windows-2019
     steps:
       - uses: actions/checkout@v2
-      - run: choco install erlang rebar3
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: 24.3
+          rebar3-version: 3.17
       - run: |
           Install-Module -Name posh-vs -Force
           Install-PoshVs
